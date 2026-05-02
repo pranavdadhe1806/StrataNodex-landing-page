@@ -50,13 +50,13 @@ export default function AuthSection() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${API_URL}/api/auth/google`;
-  };
+// const handleGoogleLogin = () => {
+  //   window.location.href = `${API_URL}/api/auth/google`;
+  // };
 
-  const handleGithubLogin = () => {
-    window.location.href = `${API_URL}/api/auth/github`;
-  };
+  // const handleGithubLogin = () => {
+  //   window.location.href = `${API_URL}/api/auth/github`;
+  // };
 
   return (
     <section
@@ -200,7 +200,7 @@ export default function AuthSection() {
                 </button>
 
                 {/* Divider */}
-                <div className="flex items-center gap-4 my-6">
+                {/* <div className="flex items-center gap-4 my-6">
                   <div
                     className="flex-1 h-px"
                     style={{ background: "rgba(0,191,255,0.08)" }}
@@ -215,10 +215,10 @@ export default function AuthSection() {
                     className="flex-1 h-px"
                     style={{ background: "rgba(0,191,255,0.08)" }}
                   />
-                </div>
+                </div> */}
 
                 {/* OAuth buttons */}
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <button
                     type="button"
                     onClick={handleGoogleLogin}
@@ -294,7 +294,7 @@ export default function AuthSection() {
                     </svg>
                     Continue with GitHub
                   </button>
-                </div>
+                </div> */}
 
                 {/* Sign up link */}
                 <p
