@@ -147,4 +147,39 @@ export default function Footer() {
 
         {/* Bottom row */}
         <div
-          className="mt-12 pt-8 flex flex-col sm:flex-row 
+          className="mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+          style={{ borderTop: "1px solid #0e2a35" }}
+        >
+          <p
+            className="text-xs text-center sm:text-left"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Built with ❤ and too many terminal sessions.
+          </p>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--text-muted)" }}
+              className="hover:text-[#e0f8ff] transition-colors duration-200"
+              aria-label="GitHub"
+            >
+              <GithubIcon />
+            </a>
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--text-muted)" }}
+              className="hover:text-[#e0f8ff] transition-colors duration-200"
+              aria-label="Twitter"
+            >
+              <TwitterIcon />
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}

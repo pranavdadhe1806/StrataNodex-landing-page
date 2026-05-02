@@ -6,7 +6,6 @@ import { Loader2 } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import SectionLabel from "@/components/ui/SectionLabel";
 import AnimatedText from "@/components/ui/AnimatedText";
-import GlowButton from "@/components/ui/GlowButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:5173";

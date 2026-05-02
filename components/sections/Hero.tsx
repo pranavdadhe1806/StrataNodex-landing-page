@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronDown, Check, Copy } from "lucide-react";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
-import SplitType from "split-type";
 import TerminalMock, { TerminalLine } from "@/components/ui/TerminalMock";
 import GlowButton from "@/components/ui/GlowButton";
 
@@ -30,10 +27,11 @@ const heroTerminalLines: TerminalLine[] = [
   { text: "      2  Fix auth bug       [DONE]", color: "green", delay: 4800 },
 ];
 
+const words = ["Productivity", "that", "lives", "where", "you", "work"];
+
 export default function Hero() {
   const [copied, setCopied] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Scroll tracking for chevron fade
@@ -77,7 +75,7 @@ export default function Hero() {
           );
           const pulse =
             0.3 +
-            0.7 * Math.abs(Math.sin((tick * 0.005 - dist * 0.003)));
+            0.7 * Math.abs(Math.sin(tick * 0.005 - dist * 0.003));
           ctx.beginPath();
           ctx.arc(x, y, 1.5, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(0,191,255,${0.06 + pulse * 0.09})`;
@@ -96,46 +94,13 @@ export default function Hero() {
     };
   }, []);
 
-  // H1 SplitType word animation
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    gsap.registerPlugin(ScrollTrigger);
-
-    const el = headingRef.current;
-    if (!el) return;
-
-    const split = new SplitType(el, { types: "words" });
-    if (!split.words) return;
-
-    split.words.forEach((word) => {
-      (word as HTMLElement).style.display = "inline-block";
-      (word as HTMLElement).style.overflow = "hidden";
-    });
-
-    const ctx = gsap.context(() => {
-      gsap.from(split.words!, {
-        y: "100%",
-        opacity: 0,
-        stagger: 0.08,
-        delay: 0.8,
-        duration: 0.9,
-        ease: "power3.out",
-      });
-    });
-
-    return () => {
-      ctx.revert();
-      split.revert();
-    };
-  }, []);
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(INSTALL_CMD);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
+      // fallback: do nothing
     }
   };
 
@@ -182,22 +147,34 @@ export default function Hero() {
           </span>
         </motion.div>
 
-        {/* H1 */}
+        {/* H1 — word-by-word stagger using Framer Motion */}
         <h1
-          ref={headingRef}
-          className="font-bold mb-6 text-gradient-hero leading-tight"
-          style={{
-            fontSize: "clamp(48px, 8vw, 96px)",
-          }}
+          className="font-bold mb-6 leading-tight"
+          style={{ fontSize: "clamp(48px, 8vw, 96px)" }}
+          aria-label="Productivity that lives where you work"
         >
-          Productivity that lives where you work
+          {words.map((word, i) => (
+            <motion.span
+              key={word + i}
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.7,
+                delay: 0.6 + i * 0.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="inline-block mr-[0.25em] text-gradient-hero"
+            >
+              {word}
+            </motion.span>
+          ))}
         </h1>
 
         {/* Subheading */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.1 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
           className="mx-auto mb-10"
           style={{
             fontSize: "18px",
@@ -215,13 +192,13 @@ export default function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.3 }}
+          transition={{ duration: 0.6, delay: 1.4 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
         >
           {/* Install command */}
           <button
             onClick={handleCopy}
-            className="flex items-center gap-3 px-5 py-3 rounded-lg transition-all duration-300 group"
+            className="flex items-center gap-3 px-5 py-3 rounded-lg transition-all duration-300"
             style={{
               background: "rgba(0,191,255,0.04)",
               border: "1px solid rgba(0,191,255,0.2)",
@@ -238,7 +215,7 @@ export default function Hero() {
                 "rgba(0,191,255,0.2)";
             }}
             id="hero-copy-btn"
-            aria-label="Copy install command"
+            aria-label="Copy install command to clipboard"
           >
             <span>$ {INSTALL_CMD}</span>
             <span style={{ color: "var(--text-muted)" }}>
@@ -251,7 +228,7 @@ export default function Hero() {
             {copied && (
               <span
                 className="text-xs"
-                style={{ color: "var(--accent-teal)", marginLeft: "-4px" }}
+                style={{ color: "var(--accent-teal)" }}
               >
                 Copied!
               </span>
@@ -267,7 +244,7 @@ export default function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
+          transition={{ duration: 0.8, delay: 1.6 }}
           className="w-full max-w-2xl mx-auto"
         >
           <TerminalMock

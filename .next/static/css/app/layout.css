@@ -624,6 +624,9 @@ video {
 .ml-4 {
   margin-left: 1rem;
 }
+.mr-\[0\.25em\] {
+  margin-right: 0.25em;
+}
 .mt-0 {
   margin-top: 0px;
 }

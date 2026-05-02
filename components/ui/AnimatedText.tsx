@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import SplitType from "split-type";
+import React from "react";
 
 interface AnimatedTextProps {
   text: string;
@@ -18,7 +19,7 @@ interface AnimatedTextProps {
 
 export default function AnimatedText({
   text,
-  tag: Tag = "h2",
+  tag = "h2",
   className = "",
   id,
   style,
@@ -26,55 +27,84 @@ export default function AnimatedText({
   splitType = "words",
   stagger = 0.06,
 }: AnimatedTextProps) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     if (typeof window === "undefined") return;
-    gsap.registerPlugin(ScrollTrigger);
 
     const el = ref.current;
     if (!el) return;
 
-    const split = new SplitType(el, { types: splitType });
-    const targets =
-      splitType === "words"
-        ? split.words
-        : splitType === "chars"
-          ? split.chars
-          : split.lines;
+    let split: SplitType | null = null;
+    let ctx: gsap.Context | null = null;
 
-    if (!targets || targets.length === 0) return;
+    const init = () => {
+      try {
+        gsap.registerPlugin(ScrollTrigger);
 
-    targets.forEach((target) => {
-      (target as HTMLElement).style.display = "inline-block";
-    });
+        split = new SplitType(el, { types: splitType });
+        const targets =
+          splitType === "words"
+            ? split.words
+            : splitType === "chars"
+              ? split.chars
+              : split.lines;
 
-    const ctx = gsap.context(() => {
-      gsap.from(targets, {
-        y: "100%",
-        opacity: 0,
-        stagger,
-        delay,
-        duration: 0.8,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 85%",
-          toggleActions: "play none none none",
-        },
-      });
-    });
+        if (!targets || targets.length === 0) return;
+
+        targets.forEach((target) => {
+          (target as HTMLElement).style.display = "inline-block";
+        });
+
+        ctx = gsap.context(() => {
+          gsap.fromTo(
+            targets,
+            { y: "80%", opacity: 0 },
+            {
+              y: "0%",
+              opacity: 1,
+              stagger,
+              delay,
+              duration: 0.8,
+              ease: "power3.out",
+              scrollTrigger: {
+                trigger: el,
+                start: "top 88%",
+                toggleActions: "play none none none",
+              },
+            }
+          );
+        });
+      } catch {
+        // Fallback: element remains visible with no animation
+      }
+    };
+
+    const timer = setTimeout(init, 50);
 
     return () => {
-      ctx.revert();
-      split.revert();
+      clearTimeout(timer);
+      ctx?.revert();
+      split?.revert();
     };
-  }, [text, splitType, stagger, delay]);
+  }, [mounted, text, splitType, stagger, delay]);
 
-  return (
-    // @ts-expect-error - dynamic tag typing with ref
-    <Tag ref={ref} id={id} className={`overflow-hidden ${className}`} style={style}>
-      {text}
-    </Tag>
+  // We render a div wrapper then use the semantic tag inside via createElement
+  // This avoids complex generic ref typing
+  return React.createElement(
+    tag,
+    {
+      ref,
+      id,
+      className,
+      style,
+    } as React.HTMLAttributes<HTMLElement> & { ref: React.Ref<HTMLDivElement> },
+    text
   );
 }
