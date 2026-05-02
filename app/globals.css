@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #080c0f;
+  --bg-card: #0d1318;
+  --bg-surface: #0a1a25;
+  --border: #0e2a35;
+  --border-glow: rgba(0, 191, 255, 0.15);
+  --text-primary: #e0f8ff;
+  --text-secondary: #4a8a9a;
+  --text-muted: #1a4a5a;
+  --accent-cyan: #00bfff;
+  --accent-teal: #00c896;
+  --accent-blue: #4d9fff;
+  --glow-cyan: rgba(0, 191, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scrolling */
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Text selection */
+::selection {
+  background: rgba(0, 191, 255, 0.2);
+  color: var(--text-primary);
+}
+
+/* Clip overflow on text gradient */
+.text-gradient-hero {
+  background: linear-gradient(135deg, #e0f8ff 0%, #00bfff 50%, #00c896 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Word split clip container */
+.word-clip {
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Dot grid animation */
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Bounce chevron */
+@keyframes bounceY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.bounce-y {
+  animation: bounceY 1.8s ease-in-out infinite;
+}
+
+/* Shake animation for login card */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+  90% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(0, 191, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 191, 255, 0.12);
+  border-radius: 12px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(0, 191, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.06);
+}
+
+/* Dashed line draw animation */
+@keyframes drawLine {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+
+.line-draw {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+}
+
+.line-draw.animated {
+  animation: drawLine 1s ease forwards;
+}
+
+/* Hide lenis overflow during init */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
