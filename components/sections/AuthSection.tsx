@@ -71,9 +71,14 @@ export default function AuthSection() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("+1");
+  const [countryCode, setCountryCode] = useState("+91");
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // OTP state
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const selectedCountry = COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
   const [error, setError] = useState("");
@@ -90,6 +95,36 @@ export default function AuthSection() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!isLogin) {
+      if (!name.trim()) {
+        setError("Name is required.");
+        triggerShake();
+        return;
+      }
+      if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+        setError("Valid email is required.");
+        triggerShake();
+        return;
+      }
+      if (!password.trim() || password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        triggerShake();
+        return;
+      }
+      if (phone && !/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) {
+        setError("Please enter a valid phone number or leave it blank.");
+        triggerShake();
+        return;
+      }
+    } else {
+      if (!email.trim() || !password.trim()) {
+        setError("Email and password are required.");
+        triggerShake();
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -111,11 +146,7 @@ export default function AuthSection() {
         } else {
           const data = await res.json();
           setSuccess(data.message ?? "Account created! Please check your email to verify.");
-          // Clear form
-          setEmail("");
-          setPassword("");
-          setName("");
-          setPhone("");
+          setShowOtp(true);
         }
       } else {
         const data = (await res.json()) as { message?: string, error?: string };
@@ -127,6 +158,64 @@ export default function AuthSection() {
       triggerShake();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) {
+      setError("Please enter the full 6-digit OTP.");
+      triggerShake();
+      return;
+    }
+    
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/otp/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: otpValue, type: 'VERIFY_EMAIL' }),
+      });
+      
+      if (res.ok) {
+        setSuccess("Email verified successfully! You can now log in.");
+        setTimeout(() => {
+          setShowOtp(false);
+          setIsLogin(true);
+          setOtp(["", "", "", "", "", ""]);
+          setPassword("");
+        }, 2000);
+      } else {
+        const data = await res.json();
+        setError(data.message ?? data.error ?? "Invalid OTP.");
+        triggerShake();
+      }
+    } catch {
+      setError("Unable to connect. Please check your network.");
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    if (value !== "" && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && otp[index] === "" && index > 0) {
+      otpRefs.current[index - 1]?.focus();
     }
   };
 
@@ -173,10 +262,70 @@ export default function AuthSection() {
                 className="text-xl font-semibold mb-8"
                 style={{ color: "var(--text-primary)" }}
               >
-                {isLogin ? "Sign in to StrataNodex" : "Create your account"}
+                {showOtp ? "Verify your email" : isLogin ? "Sign in to StrataNodex" : "Create your account"}
               </h3>
 
-              <form onSubmit={handleSubmit} noValidate>
+              {showOtp ? (
+                <form onSubmit={handleOtpSubmit} noValidate>
+                  <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+                    We sent a 6-digit code to <strong style={{ color: "var(--text-primary)" }}>{email}</strong>.
+                  </p>
+                  <div className="flex gap-2 justify-between mb-8">
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { otpRefs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ''))}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
+                        style={{
+                          background: "rgba(0,191,255,0.03)",
+                          border: "1px solid rgba(0,191,255,0.12)",
+                          color: "var(--text-primary)",
+                        }}
+                        onFocus={(e) => (e.target.style.borderColor = "rgba(0,191,255,0.35)")}
+                        onBlur={(e) => (e.target.style.borderColor = "rgba(0,191,255,0.12)")}
+                        maxLength={1}
+                      />
+                    ))}
+                  </div>
+
+                  {error && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-sm mb-4" style={{ color: "#ff4466" }} role="alert">
+                      {error}
+                    </motion.p>
+                  )}
+                  {success && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-sm mb-4" style={{ color: "var(--accent-teal)" }} role="status">
+                      {success}
+                    </motion.p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-300"
+                    style={{
+                      background: "rgba(0,51,68,0.8)",
+                      border: "1px solid rgba(0,191,255,0.4)",
+                      color: "#00bfff",
+                      opacity: loading ? 0.7 : 1,
+                    }}
+                  >
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+                    Verify Email →
+                  </button>
+                  <p className="text-center text-sm mt-6" style={{ color: "var(--text-muted)" }}>
+                    <button type="button" onClick={() => setShowOtp(false)} className="transition-colors duration-200 font-medium" style={{ color: "var(--text-secondary)" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "var(--text-primary)")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
+                      ← Back to sign up
+                    </button>
+                  </p>
+                </form>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate>
                 {/* Name - only for Sign Up */}
                 {!isLogin && (
                   <>
@@ -193,7 +342,6 @@ export default function AuthSection() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
                         className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
                         style={{
                           background: "rgba(0,191,255,0.03)",
@@ -285,7 +433,6 @@ export default function AuthSection() {
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          placeholder="555 000 0000"
                           className="flex-1 px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
                           style={{
                             background: "rgba(0,191,255,0.03)",
@@ -318,7 +465,6 @@ export default function AuthSection() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
                     required
                     className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
                     style={{
@@ -349,7 +495,6 @@ export default function AuthSection() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
                     required
                     className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
                     style={{
@@ -439,6 +584,7 @@ export default function AuthSection() {
                   </button>
                 </p>
               </form>
+              )}
             </GlassCard>
 
             {/* CLI login note */}
