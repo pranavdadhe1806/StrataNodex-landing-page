@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, ChevronDown } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import SectionLabel from "@/components/ui/SectionLabel";
 import AnimatedText from "@/components/ui/AnimatedText";
@@ -10,11 +10,74 @@ import AnimatedText from "@/components/ui/AnimatedText";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:5173";
 
+const COUNTRY_CODES = [
+  { code: "+1", iso: "us", name: "United States" },
+  { code: "+44", iso: "gb", name: "United Kingdom" },
+  { code: "+91", iso: "in", name: "India" },
+  { code: "+61", iso: "au", name: "Australia" },
+  { code: "+49", iso: "de", name: "Germany" },
+  { code: "+33", iso: "fr", name: "France" },
+  { code: "+81", iso: "jp", name: "Japan" },
+  { code: "+55", iso: "br", name: "Brazil" },
+  { code: "+1", iso: "ca", name: "Canada" },
+  { code: "+86", iso: "cn", name: "China" },
+  { code: "+39", iso: "it", name: "Italy" },
+  { code: "+34", iso: "es", name: "Spain" },
+  { code: "+52", iso: "mx", name: "Mexico" },
+  { code: "+31", iso: "nl", name: "Netherlands" },
+  { code: "+46", iso: "se", name: "Sweden" },
+  { code: "+41", iso: "ch", name: "Switzerland" },
+  { code: "+65", iso: "sg", name: "Singapore" },
+  { code: "+971", iso: "ae", name: "UAE" },
+  { code: "+27", iso: "za", name: "South Africa" },
+  { code: "+7", iso: "ru", name: "Russia" },
+  { code: "+82", iso: "kr", name: "South Korea" },
+  { code: "+62", iso: "id", name: "Indonesia" },
+  { code: "+90", iso: "tr", name: "Turkey" },
+  { code: "+966", iso: "sa", name: "Saudi Arabia" },
+  { code: "+234", iso: "ng", name: "Nigeria" },
+  { code: "+54", iso: "ar", name: "Argentina" },
+  { code: "+57", iso: "co", name: "Colombia" },
+  { code: "+51", iso: "pe", name: "Peru" },
+  { code: "+56", iso: "cl", name: "Chile" },
+  { code: "+58", iso: "ve", name: "Venezuela" },
+  { code: "+20", iso: "eg", name: "Egypt" },
+  { code: "+98", iso: "ir", name: "Iran" },
+  { code: "+92", iso: "pk", name: "Pakistan" },
+  { code: "+880", iso: "bd", name: "Bangladesh" },
+  { code: "+63", iso: "ph", name: "Philippines" },
+  { code: "+66", iso: "th", name: "Thailand" },
+  { code: "+84", iso: "vn", name: "Vietnam" },
+  { code: "+60", iso: "my", name: "Malaysia" },
+  { code: "+32", iso: "be", name: "Belgium" },
+  { code: "+43", iso: "at", name: "Austria" },
+  { code: "+45", iso: "dk", name: "Denmark" },
+  { code: "+358", iso: "fi", name: "Finland" },
+  { code: "+47", iso: "no", name: "Norway" },
+  { code: "+48", iso: "pl", name: "Poland" },
+  { code: "+351", iso: "pt", name: "Portugal" },
+  { code: "+30", iso: "gr", name: "Greece" },
+  { code: "+420", iso: "cz", name: "Czech Republic" },
+  { code: "+36", iso: "hu", name: "Hungary" },
+  { code: "+40", iso: "ro", name: "Romania" },
+  { code: "+380", iso: "ua", name: "Ukraine" },
+  { code: "+972", iso: "il", name: "Israel" },
+  { code: "+64", iso: "nz", name: "New Zealand" },
+];
+
 export default function AuthSection() {
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const selectedCountry = COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [shaking, setShaking] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -26,20 +89,37 @@ export default function AuthSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const fullPhone = phone ? `${countryCode}${phone.replace(/\D/g, '')}` : undefined;
+      const body = isLogin 
+        ? { email, password } 
+        : { email, password, name, phone: fullPhone };
+
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
-        window.location.href = APP_URL;
+        if (isLogin) {
+          window.location.href = APP_URL;
+        } else {
+          const data = await res.json();
+          setSuccess(data.message ?? "Account created! Please check your email to verify.");
+          // Clear form
+          setEmail("");
+          setPassword("");
+          setName("");
+          setPhone("");
+        }
       } else {
-        const data = (await res.json()) as { message?: string };
-        setError(data.message ?? "Invalid credentials. Please try again.");
+        const data = (await res.json()) as { message?: string, error?: string };
+        setError(data.message ?? data.error ?? "Invalid credentials. Please try again.");
         triggerShake();
       }
     } catch {
@@ -49,14 +129,6 @@ export default function AuthSection() {
       setLoading(false);
     }
   };
-
-// const handleGoogleLogin = () => {
-  //   window.location.href = `${API_URL}/api/auth/google`;
-  // };
-
-  // const handleGithubLogin = () => {
-  //   window.location.href = `${API_URL}/api/auth/github`;
-  // };
 
   return (
     <section
@@ -101,10 +173,137 @@ export default function AuthSection() {
                 className="text-xl font-semibold mb-8"
                 style={{ color: "var(--text-primary)" }}
               >
-                Sign in to StrataNodex
+                {isLogin ? "Sign in to StrataNodex" : "Create your account"}
               </h3>
 
               <form onSubmit={handleSubmit} noValidate>
+                {/* Name - only for Sign Up */}
+                {!isLogin && (
+                  <>
+                    <div className="mb-4">
+                      <label
+                        htmlFor="auth-name"
+                        className="block text-xs mb-2"
+                        style={{ color: "var(--text-secondary)", letterSpacing: "0.04em" }}
+                      >
+                        Full Name
+                      </label>
+                      <input
+                        id="auth-name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="John Doe"
+                        className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
+                        style={{
+                          background: "rgba(0,191,255,0.03)",
+                          border: "1px solid rgba(0,191,255,0.12)",
+                          color: "var(--text-primary)",
+                        }}
+                        onFocus={(e) =>
+                          (e.target.style.borderColor = "rgba(0,191,255,0.35)")
+                        }
+                        onBlur={(e) =>
+                          (e.target.style.borderColor = "rgba(0,191,255,0.12)")
+                        }
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label
+                        htmlFor="auth-phone"
+                        className="block text-xs mb-2"
+                        style={{ color: "var(--text-secondary)", letterSpacing: "0.04em" }}
+                      >
+                        Phone Number
+                      </label>
+                      <div className="flex gap-2 relative">
+                        {/* Custom Country Code Dropdown */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                            className="flex items-center gap-2 h-[46px] px-3 rounded-lg text-sm outline-none transition-all duration-200 cursor-pointer"
+                            style={{
+                              background: "rgba(0,191,255,0.03)",
+                              border: countryDropdownOpen ? "1px solid rgba(0,191,255,0.35)" : "1px solid rgba(0,191,255,0.12)",
+                              color: "var(--text-primary)",
+                              minWidth: "90px",
+                            }}
+                          >
+                            <img
+                              src={`https://flagcdn.com/w20/${selectedCountry.iso}.png`}
+                              alt={selectedCountry.name}
+                              className="w-[18px] h-auto rounded-sm object-cover"
+                            />
+                            <span>{selectedCountry.code}</span>
+                            <ChevronDown size={14} className="ml-auto opacity-50" />
+                          </button>
+
+                          <AnimatePresence>
+                            {countryDropdownOpen && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute top-[calc(100%+8px)] left-0 w-[260px] max-h-[280px] overflow-y-auto rounded-xl z-50 p-2 shadow-2xl"
+                                style={{
+                                  background: "rgba(10,15,20,0.98)",
+                                  backdropFilter: "blur(20px)",
+                                  border: "1px solid rgba(0,191,255,0.15)",
+                                }}
+                              >
+                                {COUNTRY_CODES.map((c) => (
+                                  <button
+                                    key={`${c.iso}-${c.code}`}
+                                    type="button"
+                                    onClick={() => {
+                                      setCountryCode(c.code);
+                                      setCountryDropdownOpen(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 hover:bg-[rgba(0,191,255,0.1)]"
+                                    style={{ color: "var(--text-primary)" }}
+                                  >
+                                    <img
+                                      src={`https://flagcdn.com/w20/${c.iso}.png`}
+                                      alt={c.name}
+                                      className="w-[18px] h-auto rounded-sm object-cover"
+                                    />
+                                    <span className="font-medium text-left flex-1 truncate">{c.name}</span>
+                                    <span style={{ color: "var(--text-muted)" }}>{c.code}</span>
+                                  </button>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        {/* Phone Number Input */}
+                        <input
+                          id="auth-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="555 000 0000"
+                          className="flex-1 px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
+                          style={{
+                            background: "rgba(0,191,255,0.03)",
+                            border: "1px solid rgba(0,191,255,0.12)",
+                            color: "var(--text-primary)",
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.borderColor = "rgba(0,191,255,0.35)")
+                          }
+                          onBlur={(e) =>
+                            (e.target.style.borderColor = "rgba(0,191,255,0.12)")
+                          }
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {/* Email */}
                 <div className="mb-4">
                   <label
@@ -180,6 +379,19 @@ export default function AuthSection() {
                   </motion.p>
                 )}
 
+                {/* Success */}
+                {success && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-sm mb-4"
+                    style={{ color: "var(--accent-teal)" }}
+                    role="status"
+                  >
+                    {success}
+                  </motion.p>
+                )}
+
                 {/* Submit */}
                 <button
                   type="submit"
@@ -196,115 +408,23 @@ export default function AuthSection() {
                   {loading ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : null}
-                  Continue →
+                  {isLogin ? "Continue →" : "Create Account →"}
                 </button>
 
-                {/* Divider */}
-                {/* <div className="flex items-center gap-4 my-6">
-                  <div
-                    className="flex-1 h-px"
-                    style={{ background: "rgba(0,191,255,0.08)" }}
-                  />
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    OR
-                  </span>
-                  <div
-                    className="flex-1 h-px"
-                    style={{ background: "rgba(0,191,255,0.08)" }}
-                  />
-                </div> */}
-
-                {/* OAuth buttons */}
-                {/* <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    className="w-full flex items-center justify-center gap-3 py-3 rounded-lg text-sm font-medium transition-all duration-200"
-                    style={{
-                      background: "rgba(52,168,83,0.06)",
-                      border: "1px solid rgba(52,168,83,0.25)",
-                      color: "#34A853",
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLElement).style.borderColor =
-                        "rgba(52,168,83,0.5)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLElement).style.borderColor =
-                        "rgba(52,168,83,0.25)")
-                    }
-                    id="auth-google-btn"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fill="#34A853"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#4285F4"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Continue with Google
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleGithubLogin}
-                    className="w-full flex items-center justify-center gap-3 py-3 rounded-lg text-sm font-medium transition-all duration-200"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      color: "#e0f8ff",
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLElement).style.borderColor =
-                        "rgba(255,255,255,0.25)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLElement).style.borderColor =
-                        "rgba(255,255,255,0.12)")
-                    }
-                    id="auth-github-btn"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
-                    </svg>
-                    Continue with GitHub
-                  </button>
-                </div> */}
-
-                {/* Sign up link */}
+                {/* Sign up / Login link */}
                 <p
                   className="text-center text-sm mt-6"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Don&apos;t have an account?{" "}
-                  <a
-                    href="#"
-                    className="transition-colors duration-200"
+                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setError("");
+                      setSuccess("");
+                    }}
+                    className="transition-colors duration-200 font-medium"
                     style={{ color: "var(--accent-cyan)" }}
                     onMouseEnter={(e) =>
                       ((e.target as HTMLElement).style.color =
@@ -314,10 +434,9 @@ export default function AuthSection() {
                       ((e.target as HTMLElement).style.color =
                         "var(--accent-cyan)")
                     }
-                    id="auth-signup-link"
                   >
-                    Sign up
-                  </a>
+                    {isLogin ? "Sign up" : "Sign in"}
+                  </button>
                 </p>
               </form>
             </GlassCard>
