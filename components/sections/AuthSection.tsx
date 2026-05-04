@@ -85,7 +85,13 @@ export default function AuthSection() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [shaking, setShaking] = useState(false);
+  const [toast, setToast] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  };
 
   const triggerShake = () => {
     setShaking(true);
@@ -143,7 +149,13 @@ export default function AuthSection() {
 
       if (res.ok) {
         if (isLogin) {
-          window.location.href = APP_URL;
+          const data = await res.json();
+          // Persist token + user so Navbar can read them
+          if (data.token) localStorage.setItem("sn_token", data.token);
+          if (data.user) localStorage.setItem("sn_user", JSON.stringify(data.user));
+          // Notify Navbar to re-render
+          window.dispatchEvent(new Event("sn_auth_change"));
+          showToast(`Welcome back, ${data.user?.name ?? data.user?.email ?? "there"}! 👋`);
         } else {
           const data = await res.json();
           // Store the JWT returned by register so we can use it for OTP verification
@@ -226,12 +238,39 @@ export default function AuthSection() {
   };
 
   return (
-    <section
-      className="py-28 px-4 sm:px-6 lg:px-8"
-      style={{ background: "var(--bg-base)" }}
-      id="auth"
-      aria-labelledby="auth-heading"
-    >
+    <>
+      {/* ── Toast notification ── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="toast"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.96 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl text-sm font-medium"
+            style={{
+              background: "rgba(8,18,24,0.95)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(0,191,255,0.25)",
+              color: "var(--text-primary)",
+            }}
+            role="status"
+            aria-live="polite"
+            id="auth-toast"
+          >
+            <span style={{ color: "var(--accent-cyan)" }}>✓</span>
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <section
+        className="py-28 px-4 sm:px-6 lg:px-8"
+        style={{ background: "var(--bg-base)" }}
+        id="auth"
+        aria-labelledby="auth-heading"
+      >
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left: copy */}
@@ -613,5 +652,6 @@ export default function AuthSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }

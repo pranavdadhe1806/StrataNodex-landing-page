@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, Settings, CreditCard, LogOut, ChevronDown, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import GlowButton from "@/components/ui/GlowButton";
 
@@ -14,16 +14,54 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
 ];
 
+const profileMenuItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "#" },
+  { label: "Profile Settings", icon: User, href: "#" },
+  { label: "Account Settings", icon: Settings, href: "#" },
+  { label: "Subscriptions", icon: CreditCard, href: "#" },
+];
+
+interface StoredUser {
+  name?: string;
+  email: string;
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const [user, setUser] = useState<StoredUser | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Read user from localStorage on mount + listen for auth changes
+  useEffect(() => {
+    const readUser = () => {
+      try {
+        const raw = localStorage.getItem("sn_user");
+        setUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setUser(null);
+      }
+    };
+    readUser();
+    window.addEventListener("sn_auth_change", readUser);
+    return () => window.removeEventListener("sn_auth_change", readUser);
+  }, []);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -32,22 +70,16 @@ export default function Navbar() {
   useEffect(() => {
     const sections = ["features", "cli", "webapp", "mobile"];
     const observers: IntersectionObserver[] = [];
-
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
-
       const obs = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) setActiveSection(id);
-        },
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
         { threshold: 0.3 }
       );
-
       obs.observe(el);
       observers.push(obs);
     });
-
     return () => observers.forEach((obs) => obs.disconnect());
   }, []);
 
@@ -55,14 +87,24 @@ export default function Navbar() {
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
       setMenuOpen(false);
-      const id = href.replace("#", "");
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
+      const el = document.getElementById(href.replace("#", ""));
+      if (el) el.scrollIntoView({ behavior: "smooth" });
     },
     []
   );
+
+  const handleLogout = () => {
+    localStorage.removeItem("sn_token");
+    localStorage.removeItem("sn_user");
+    setUser(null);
+    setProfileOpen(false);
+    window.dispatchEvent(new Event("sn_auth_change"));
+  };
+
+  // Avatar initials from name or email
+  const initials = user
+    ? (user.name ?? user.email).split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+    : "";
 
   return (
     <>
@@ -74,12 +116,8 @@ export default function Navbar() {
         style={{
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          background: scrolled
-            ? "rgba(8,12,15,0.9)"
-            : "rgba(8,12,15,0.3)",
-          borderBottom: scrolled
-            ? "1px solid rgba(14,42,53,0.8)"
-            : "1px solid transparent",
+          background: scrolled ? "rgba(8,12,15,0.9)" : "rgba(8,12,15,0.3)",
+          borderBottom: scrolled ? "1px solid rgba(14,42,53,0.8)" : "1px solid transparent",
         }}
         id="navbar"
       >
@@ -89,15 +127,12 @@ export default function Navbar() {
             <Link
               href="/"
               className="text-lg font-bold tracking-[0.05em]"
-              style={{
-                fontFamily: "var(--font-geist-mono)",
-                color: "var(--accent-cyan)",
-              }}
+              style={{ fontFamily: "var(--font-geist-mono)", color: "var(--accent-cyan)" }}
             >
               StrataNodex
             </Link>
 
-            {/* Desktop nav */}
+            {/* Desktop nav links */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => {
                 const sectionId = link.href.replace("#", "");
@@ -108,20 +143,9 @@ export default function Navbar() {
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
                     className="text-sm transition-colors duration-200"
-                    style={{
-                      color: isActive
-                        ? "var(--accent-cyan)"
-                        : "var(--text-secondary)",
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.target as HTMLElement).style.color =
-                        "var(--text-primary)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.target as HTMLElement).style.color = isActive
-                        ? "var(--accent-cyan)"
-                        : "var(--text-secondary)")
-                    }
+                    style={{ color: isActive ? "var(--accent-cyan)" : "var(--text-secondary)" }}
+                    onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "var(--text-primary)")}
+                    onMouseLeave={(e) => ((e.target as HTMLElement).style.color = isActive ? "var(--accent-cyan)" : "var(--text-secondary)")}
                   >
                     {link.label}
                   </a>
@@ -129,14 +153,122 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* CTA buttons */}
+            {/* Right side: Auth buttons OR Profile */}
             <div className="hidden md:flex items-center gap-3">
-              <GlowButton variant="ghost" href="#auth">
-                Sign In
-              </GlowButton>
-              <GlowButton variant="primary" href="#auth" id="navbar-cta">
-                Get Started →
-              </GlowButton>
+              {user ? (
+                /* ── Logged-in: Avatar + Name + Dropdown ── */
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen((v) => !v)}
+                    className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-all duration-200"
+                    style={{
+                      background: profileOpen ? "rgba(0,191,255,0.08)" : "transparent",
+                      border: "1px solid rgba(0,191,255,0.15)",
+                    }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(0,191,255,0.08)")}
+                    onMouseLeave={(e) => !profileOpen && ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                    id="profile-menu-btn"
+                    aria-haspopup="true"
+                    aria-expanded={profileOpen}
+                  >
+                    {/* Avatar circle */}
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(0,191,255,0.3), rgba(0,128,128,0.4))",
+                        border: "1px solid rgba(0,191,255,0.4)",
+                        color: "var(--accent-cyan)",
+                      }}
+                    >
+                      {initials}
+                    </div>
+                    <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                      {user.name?.split(" ")[0] ?? user.email.split("@")[0]}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className="opacity-50 transition-transform duration-200"
+                      style={{ transform: profileOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                    />
+                  </button>
+
+                  {/* Dropdown */}
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-[calc(100%+10px)] w-56 rounded-2xl overflow-hidden shadow-2xl z-50"
+                        style={{
+                          background: "rgba(8,14,20,0.97)",
+                          backdropFilter: "blur(20px)",
+                          border: "1px solid rgba(0,191,255,0.12)",
+                        }}
+                        id="profile-dropdown"
+                        role="menu"
+                      >
+                        {/* User info header */}
+                        <div className="px-4 py-3 border-b border-[rgba(0,191,255,0.08)]">
+                          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                            {user.name ?? "User"}
+                          </p>
+                          <p className="text-xs truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
+                            {user.email}
+                          </p>
+                        </div>
+
+                        {/* Menu items */}
+                        <div className="py-1.5">
+                          {profileMenuItems.map(({ label, icon: Icon, href }) => (
+                            <a
+                              key={label}
+                              href={href}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
+                              style={{ color: "var(--text-secondary)" }}
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLElement).style.background = "rgba(0,191,255,0.07)";
+                                (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLElement).style.background = "transparent";
+                                (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                              }}
+                              role="menuitem"
+                            >
+                              <Icon size={15} className="opacity-60" />
+                              {label}
+                            </a>
+                          ))}
+                        </div>
+
+                        {/* Logout */}
+                        <div className="border-t border-[rgba(0,191,255,0.08)] py-1.5">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
+                            style={{ color: "#ff4466" }}
+                            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,68,102,0.07)")}
+                            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                            role="menuitem"
+                            id="logout-btn"
+                          >
+                            <LogOut size={15} className="opacity-70" />
+                            Sign out
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                /* ── Logged-out: Sign In + Get Started ── */
+                <>
+                  <GlowButton variant="ghost" href="#auth">Sign In</GlowButton>
+                  <GlowButton variant="primary" href="#auth" id="navbar-cta">Get Started →</GlowButton>
+                </>
+              )}
             </div>
 
             {/* Mobile hamburger */}
@@ -182,12 +314,25 @@ export default function Navbar() {
                 </a>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-[#0e2a35]">
-                <GlowButton variant="ghost" href="#auth">
-                  Sign In
-                </GlowButton>
-                <GlowButton variant="primary" href="#auth">
-                  Get Started →
-                </GlowButton>
+                {user ? (
+                  <>
+                    <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                      Signed in as {user.name ?? user.email}
+                    </p>
+                    <button
+                      onClick={handleLogout}
+                      className="text-sm py-2 text-left"
+                      style={{ color: "#ff4466" }}
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <GlowButton variant="ghost" href="#auth">Sign In</GlowButton>
+                    <GlowButton variant="primary" href="#auth">Get Started →</GlowButton>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
