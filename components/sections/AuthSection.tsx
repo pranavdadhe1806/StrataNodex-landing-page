@@ -78,6 +78,7 @@ export default function AuthSection() {
   // OTP state
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [authToken, setAuthToken] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const selectedCountry = COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
@@ -145,6 +146,8 @@ export default function AuthSection() {
           window.location.href = APP_URL;
         } else {
           const data = await res.json();
+          // Store the JWT returned by register so we can use it for OTP verification
+          if (data.token) setAuthToken(data.token);
           setSuccess(data.message ?? "Account created! Please check your email to verify.");
           setShowOtp(true);
         }
@@ -175,10 +178,13 @@ export default function AuthSection() {
     setLoading(true);
     
     try {
-      const res = await fetch(`${API_URL}/api/otp/verify`, {
+      const res = await fetch(`${API_URL}/api/auth/verify-email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code: otpValue, type: 'VERIFY_EMAIL' }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({ code: otpValue }),
       });
       
       if (res.ok) {
