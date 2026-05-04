@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ChevronDown } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
@@ -85,11 +85,44 @@ export default function AuthSection() {
   const [success, setSuccess] = useState("");
   const [shaking, setShaking] = useState(false);
   const [toast, setToast] = useState("");
+  const [cliSessionCompleted, setCliSessionCompleted] = useState(false);
+  const sessionCode = useRef<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // ── Extract ?session=CODE from hash URL and auto-complete if already logged in ──
+  useEffect(() => {
+    const hash = window.location.hash; // e.g. "#auth?session=ABC123"
+    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+    const params = new URLSearchParams(queryString);
+    const code = params.get('session');
+    if (code) {
+      sessionCode.current = code;
+      // If already logged in, complete the CLI session immediately
+      const existingToken = localStorage.getItem('sn_token');
+      if (existingToken) {
+        completeCliSession(code, existingToken);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 4000);
+  };
+
+  // ── CLI session completion helper — fails silently so web login is unaffected ──
+  const completeCliSession = async (code: string, token: string) => {
+    try {
+      await fetch(`${API_URL}/api/cli-session/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, token }),
+      });
+      setCliSessionCompleted(true);
+    } catch (err) {
+      console.error('CLI session complete failed:', err);
+    }
   };
 
   const triggerShake = () => {
@@ -154,7 +187,12 @@ export default function AuthSection() {
           if (data.user) localStorage.setItem("sn_user", JSON.stringify(data.user));
           // Notify Navbar to re-render
           window.dispatchEvent(new Event("sn_auth_change"));
-          showToast(`Welcome back, ${data.user?.name ?? data.user?.email ?? "there"}! 👋`);
+          // Complete CLI session if opened from terminal
+          if (sessionCode.current && data.token) {
+            await completeCliSession(sessionCode.current, data.token);
+          } else {
+            showToast(`Welcome back, ${data.user?.name ?? data.user?.email ?? "there"}! 👋`);
+          }
         } else {
           const data = await res.json();
           // Store the JWT returned by register so we can use it for OTP verification
@@ -199,13 +237,22 @@ export default function AuthSection() {
       });
       
       if (res.ok) {
-        setSuccess("Email verified successfully! You can now log in.");
-        setTimeout(() => {
-          setShowOtp(false);
-          setIsLogin(true);
-          setOtp(["", "", "", "", "", ""]);
-          setPassword("");
-        }, 2000);
+        const data = await res.json();
+        // If OTP verify returns a token, use it for CLI session completion
+        if (sessionCode.current && data.token) {
+          if (data.token) localStorage.setItem("sn_token", data.token);
+          if (data.user) localStorage.setItem("sn_user", JSON.stringify(data.user));
+          window.dispatchEvent(new Event("sn_auth_change"));
+          await completeCliSession(sessionCode.current, data.token);
+        } else {
+          setSuccess("Email verified successfully! You can now log in.");
+          setTimeout(() => {
+            setShowOtp(false);
+            setIsLogin(true);
+            setOtp(["", "", "", "", "", ""]);
+            setPassword("");
+          }, 2000);
+        }
       } else {
         const data = await res.json();
         setError(data.message ?? data.error ?? "Invalid OTP.");
@@ -309,7 +356,27 @@ export default function AuthSection() {
                 {showOtp ? "Verify your email" : isLogin ? "Sign in to StrataNodex" : "Create your account"}
               </h3>
 
-              {showOtp ? (
+              {/* ── CLI Session Completed UI ── */}
+              {cliSessionCompleted ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-center py-4"
+                  id="cli-session-complete"
+                >
+                  <div className="text-5xl mb-4" style={{ color: "#00bfff" }}>✓</div>
+                  <h2 className="text-xl font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+                    You&apos;re logged in
+                  </h2>
+                  <p className="text-sm mb-4" style={{ color: "#8b949e" }}>
+                    Return to your terminal — StrataNodex CLI is ready.
+                  </p>
+                  <p className="text-xs" style={{ color: "#00c896" }}>
+                    You can close this tab.
+                  </p>
+                </motion.div>
+              ) : showOtp ? (
                 <form onSubmit={handleOtpSubmit} noValidate>
                   <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
                     We sent a 6-digit code to <strong style={{ color: "var(--text-primary)" }}>{email}</strong>.
