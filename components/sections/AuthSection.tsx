@@ -114,10 +114,13 @@ export default function AuthSection() {
   // ── CLI session completion helper — fails silently so web login is unaffected ──
   const completeCliSession = async (code: string, token: string) => {
     try {
-      await fetch(`${API_URL}/api/cli-session/complete`, {
+      await fetch(`${API_URL}/api/auth/cli-session/${code}/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, token }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-cli-session-secret': process.env.NEXT_PUBLIC_CLI_SESSION_SECRET ?? '',
+        },
+        body: JSON.stringify({ token }),
       });
       setCliSessionCompleted(true);
     } catch (err) {
