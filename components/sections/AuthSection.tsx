@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Loader2, ChevronDown } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
 import SectionLabel from "@/components/ui/SectionLabel";
@@ -493,9 +494,11 @@ export default function AuthSection() {
                               minWidth: "90px",
                             }}
                           >
-                            <img
+                            <Image
                               src={`https://flagcdn.com/w20/${selectedCountry.iso}.png`}
                               alt={selectedCountry.name}
+                              width={20}
+                              height={15}
                               className="w-[18px] h-auto rounded-sm object-cover"
                             />
                             <span>{selectedCountry.code}</span>
@@ -527,9 +530,11 @@ export default function AuthSection() {
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-200 hover:bg-[rgba(0,191,255,0.1)]"
                                     style={{ color: "var(--text-primary)" }}
                                   >
-                                    <img
+                                    <Image
                                       src={`https://flagcdn.com/w20/${c.iso}.png`}
                                       alt={c.name}
+                                      width={20}
+                                      height={15}
                                       className="w-[18px] h-auto rounded-sm object-cover"
                                     />
                                     <span className="font-medium text-left flex-1 truncate">{c.name}</span>
