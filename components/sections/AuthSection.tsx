@@ -8,7 +8,6 @@ import SectionLabel from "@/components/ui/SectionLabel";
 import AnimatedText from "@/components/ui/AnimatedText";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:5173";
 
 const COUNTRY_CODES = [
   { code: "+1", iso: "us", name: "United States" },
