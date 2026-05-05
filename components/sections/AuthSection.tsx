@@ -74,6 +74,7 @@ export default function AuthSection() {
   const [countryCode, setCountryCode] = useState("+91");
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isCliFlow, setIsCliFlow] = useState(false);
 
   // OTP state
   const [showOtp, setShowOtp] = useState(false);
@@ -90,14 +91,18 @@ export default function AuthSection() {
   const sessionCode = useRef<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // ── Extract ?session=CODE from hash URL and auto-complete if already logged in ──
+  // ── Extract ?session=CODE from URL and auto-complete if already logged in ──
   useEffect(() => {
-    const hash = window.location.hash; // e.g. "#auth?session=ABC123"
-    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
-    const params = new URLSearchParams(queryString);
+    // Session code is passed as a regular query param: ?session=CODE#auth
+    const params = new URLSearchParams(window.location.search);
     const code = params.get('session');
     if (code) {
       sessionCode.current = code;
+      setIsCliFlow(true);
+      // Scroll to auth section smoothly
+      setTimeout(() => {
+        document.getElementById('auth')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
       // If already logged in, complete the CLI session immediately
       const existingToken = localStorage.getItem('sn_token');
       if (existingToken) {
@@ -360,7 +365,25 @@ export default function AuthSection() {
                 {showOtp ? "Verify your email" : isLogin ? "Sign in to StrataNodex" : "Create your account"}
               </h3>
 
-              {/* ── CLI Session Completed UI ── */}
+            {/* ── CLI Session Banner ── */}
+            {isCliFlow && !cliSessionCompleted && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl mb-6 text-sm"
+                style={{
+                  background: "rgba(0,191,255,0.06)",
+                  border: "1px solid rgba(0,191,255,0.2)",
+                  color: "#00bfff",
+                }}
+              >
+                <span style={{ fontSize: "18px" }}>⌨️</span>
+                <span>Sign in below to authenticate your <strong>StrataNodex CLI</strong>.</span>
+              </motion.div>
+            )}
+
+            {/* ── CLI Session Completed UI ── */}
               {cliSessionCompleted ? (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
