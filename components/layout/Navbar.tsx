@@ -14,8 +14,12 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
 ];
 
+// Web app URL: use env var if set, fall back to local dev port
+const WEB_APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:5173";
+
 const profileMenuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "#" },
+  { label: "Dashboard", icon: LayoutDashboard, href: `${WEB_APP_URL}/dashboard` },
   { label: "Profile Settings", icon: User, href: "#" },
   { label: "Account Settings", icon: Settings, href: "#" },
   { label: "Subscriptions", icon: CreditCard, href: "#" },
@@ -225,6 +229,9 @@ export default function Navbar() {
                             <a
                               key={label}
                               href={href}
+                              target={label === "Dashboard" ? "_blank" : undefined}
+                              rel={label === "Dashboard" ? "noopener noreferrer" : undefined}
+                              onClick={() => setProfileOpen(false)}
                               className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
                               style={{ color: "var(--text-secondary)" }}
                               onMouseEnter={(e) => {

@@ -89,13 +89,15 @@ export default function AuthSection() {
   const [toast, setToast] = useState("");
   const [cliSessionCompleted, setCliSessionCompleted] = useState(false);
   const sessionCode = useRef<string | null>(null);
+  const redirectAfterLogin = useRef<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // ── Extract ?session=CODE from URL and auto-complete if already logged in ──
+  // ── Extract ?session=CODE and ?redirect=URL from URL ──
   useEffect(() => {
-    // Session code is passed as a regular query param: ?session=CODE#auth
     const params = new URLSearchParams(window.location.search);
     const code = params.get('session');
+    const redirectUrl = params.get('redirect');
+
     if (code) {
       sessionCode.current = code;
       setIsCliFlow(true);
@@ -108,6 +110,24 @@ export default function AuthSection() {
       if (existingToken) {
         completeCliSession(code, existingToken);
       }
+    }
+
+    // Store redirect URL so handleSubmit can use it after login
+    if (redirectUrl) {
+      redirectAfterLogin.current = redirectUrl;
+      // If already logged in, hand the token to the web app right away.
+      // We MUST append ?token= because localStorage is per-origin:
+      // the web app (localhost:5173) can't read localhost:3001's sn_token.
+      const existingToken = localStorage.getItem('sn_token');
+      if (existingToken) {
+        const sep = redirectUrl.includes('?') ? '&' : '?';
+        window.location.href = `${redirectUrl}${sep}token=${encodeURIComponent(existingToken)}`;
+        return;
+      }
+      // Not logged in — scroll to the auth form so they can sign in
+      setTimeout(() => {
+        document.getElementById('auth')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -199,6 +219,11 @@ export default function AuthSection() {
           // Complete CLI session if opened from terminal
           if (sessionCode.current && data.token) {
             await completeCliSession(sessionCode.current, data.token);
+          } else if (redirectAfterLogin.current) {
+            // Cross-origin token handoff: append token as query param so the
+            // web app (different port = different localStorage scope) can pick it up.
+            const sep = redirectAfterLogin.current.includes('?') ? '&' : '?';
+            window.location.href = `${redirectAfterLogin.current}${sep}token=${encodeURIComponent(data.token)}`;
           } else {
             showToast(`Welcome back, ${data.user?.name ?? data.user?.email ?? "there"}! 👋`);
           }
