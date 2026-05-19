@@ -15,19 +15,22 @@ const featureList = [
 
 // Simplified canvas node mockup data
 const mockNodes = [
-  { id: "n1", x: 40, y: 40, title: "Work", status: "FOLDER", selected: false },
-  { id: "n2", x: 220, y: 30, title: "Sprint 4", status: "LIST", selected: false },
-  { id: "n3", x: 400, y: 20, title: "Ship v1", status: "TODO", selected: true },
-  { id: "n4", x: 400, y: 90, title: "Fix auth bug", status: "DONE", selected: false },
-  { id: "n5", x: 220, y: 120, title: "Personal", status: "FOLDER", selected: false },
-  { id: "n6", x: 40, y: 140, title: "College", status: "FOLDER", selected: false },
+  { id: "n1", x: 40, y: 30, title: "Ship v1", number: "1", status: "TODO", priority: "HIGH", selected: true, children: true },
+  { id: "n2", x: 80, y: 90, title: "Write tests", number: "1.1", status: "TODO", selected: false, children: false },
+  { id: "n3", x: 80, y: 150, title: "Deploy backend", number: "1.2", status: "IN_PROGRESS", selected: false, children: false },
+  { id: "n4", x: 40, y: 210, title: "Fix auth bug", number: "2", status: "DONE", selected: false, children: false },
 ];
 
 const statusColors: Record<string, string> = {
-  FOLDER: "#4d9fff",
-  LIST: "#00c896",
-  TODO: "#4a8a9a",
-  DONE: "#00ff99",
+  TODO: "transparent",
+  IN_PROGRESS: "rgba(0,191,255,0.5)",
+  DONE: "#00c896",
+};
+
+const statusBorders: Record<string, string> = {
+  TODO: "1.5px solid #8A8F98",
+  IN_PROGRESS: "1.5px solid rgba(0,191,255,0.7)",
+  DONE: "none",
 };
 
 export default function WebAppSection() {
@@ -94,16 +97,16 @@ export default function WebAppSection() {
             <div
               className="rounded-xl overflow-hidden"
               style={{
-                border: "1px solid rgba(0,191,255,0.12)",
-                background: "#0a0f13",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "#1B1D21",
               }}
             >
               {/* Browser chrome */}
               <div
                 className="flex items-center gap-2 px-4 py-3"
                 style={{
-                  background: "#0d1318",
-                  borderBottom: "1px solid #0e2a35",
+                  background: "#32363C",
+                  borderBottom: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
                 <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
@@ -112,14 +115,14 @@ export default function WebAppSection() {
                 <div
                   className="ml-4 flex-1 rounded px-3 py-1 text-xs"
                   style={{
-                    background: "rgba(0,191,255,0.04)",
-                    border: "1px solid rgba(0,191,255,0.1)",
-                    color: "var(--text-muted)",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    color: "#8A8F98",
                     fontFamily: "var(--font-geist-mono)",
                     maxWidth: "220px",
                   }}
                 >
-                  app.stratanodex.vercel.app
+                  Sprint 4
                 </div>
               </div>
 
@@ -128,73 +131,59 @@ export default function WebAppSection() {
                 className="relative overflow-hidden"
                 style={{
                   height: "280px",
-                  background: "#080c0f",
+                  background: "#1B1D21",
+                  padding: "16px",
                 }}
               >
-                {/* Grid lines */}
-                <svg
-                  className="absolute inset-0 w-full h-full"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <pattern
-                      id="grid"
-                      width="30"
-                      height="30"
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <path
-                        d="M 30 0 L 0 0 0 30"
-                        fill="none"
-                        stroke="rgba(14,42,53,0.5)"
-                        strokeWidth="0.5"
-                      />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-                  {/* Connector lines */}
-                  <line x1="110" y1="55" x2="255" y2="45" stroke="#0e2a35" strokeWidth="1" />
-                  <line x1="310" y1="45" x2="440" y2="35" stroke="#0e2a35" strokeWidth="1" />
-                  <line x1="310" y1="45" x2="440" y2="105" stroke="#0e2a35" strokeWidth="1" />
-                  <line x1="110" y1="55" x2="255" y2="135" stroke="#0e2a35" strokeWidth="1" />
+                {/* L-shaped SVG connectors */}
+                <svg className="absolute inset-0 w-full h-full" aria-hidden="true" style={{ pointerEvents: "none" }}>
+                  {/* n1 → n2 */}
+                  <path d="M 60,70 L 60,110 L 96,110" fill="none" stroke="#8A8F98" strokeWidth="1" strokeOpacity="0.3" />
+                  {/* n1 → n3 */}
+                  <path d="M 60,70 L 60,170 L 96,170" fill="none" stroke="#8A8F98" strokeWidth="1" strokeOpacity="0.3" />
                 </svg>
 
-                {/* Nodes */}
+                {/* Node cards */}
                 {mockNodes.map((node, i) => (
                   <div
                     key={node.id}
                     ref={(el) => { nodesRef.current[i] = el; }}
-                    className="absolute flex items-center gap-2 px-3 py-2 rounded-lg"
+                    className="absolute flex items-center gap-3 px-4 py-3 rounded-xl"
                     style={{
                       left: node.x,
                       top: node.y,
-                      background: node.selected
-                        ? "rgba(0,191,255,0.08)"
-                        : "rgba(13,19,24,0.95)",
+                      background: node.selected ? "#3A3E44" : "#32363C",
                       border: node.selected
-                        ? "1px solid rgba(0,191,255,0.4)"
-                        : "1px solid rgba(14,42,53,0.8)",
-                      minWidth: "140px",
+                        ? "1px solid rgba(0,191,255,0.3)"
+                        : "1px solid rgba(255,255,255,0.06)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                      minWidth: "180px",
                     }}
                   >
-                    <span
-                      className="text-xs px-1.5 py-0.5 rounded"
+                    {/* Status circle */}
+                    <div
                       style={{
-                        background: `${statusColors[node.status]}20`,
-                        color: statusColors[node.status],
-                        fontFamily: "var(--font-geist-mono)",
-                        fontSize: "10px",
+                        width: 14,
+                        height: 14,
+                        borderRadius: "50%",
+                        background: statusColors[node.status] ?? "transparent",
+                        border: statusBorders[node.status] ?? "1.5px solid #8A8F98",
                         flexShrink: 0,
                       }}
-                    >
-                      {node.status}
+                    />
+                    {/* Number + Title */}
+                    <span className="text-xs" style={{ color: "#8A8F98", fontFamily: "var(--font-geist-mono)", flexShrink: 0 }}>
+                      {node.number}
                     </span>
-                    <span
-                      className="text-xs truncate"
-                      style={{ color: "var(--text-primary)" }}
-                    >
+                    <span className="text-sm truncate" style={{ color: "#EDEFF3" }}>
                       {node.title}
                     </span>
+                    {/* Priority badge */}
+                    {node.priority && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded ml-auto" style={{ background: "rgba(255,100,100,0.15)", color: "#ff6b6b", fontFamily: "var(--font-geist-mono)", flexShrink: 0 }}>
+                        {node.priority}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
