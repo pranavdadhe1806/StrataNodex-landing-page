@@ -5,21 +5,21 @@ import "./globals.css";
 import LenisProvider from "@/components/providers/LenisProvider";
 
 export const metadata: Metadata = {
-  title: "StrataNodex — CLI-First Task Management for Developers",
+  title: "StrataNodex — Open Source Task Management for Developers",
   description:
-    "Tree-based productivity system. CLI, web, and mobile — one account, infinite nesting, gamified scoring. Built for developers who think in layers.",
+    "Tree-based productivity across CLI, web, and mobile — one account, infinite nesting, gamified scoring. Open source and built for developers.",
   keywords: [
     "task management",
     "CLI",
     "developer tools",
     "productivity",
+    "open source",
     "terminal",
-    "TUI",
   ],
   openGraph: {
-    title: "StrataNodex — CLI-First Task Management",
+    title: "StrataNodex — Open Source Task Management",
     description:
-      "Tree-based productivity. CLI-first. Infinite nesting. One ecosystem.",
+      "Tree-based productivity. CLI, web, mobile. Infinite nesting. One ecosystem. Open source.",
     type: "website",
   },
 };

@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "bg-base": "#080c0f",
-        "bg-card": "#0d1318",
-        "bg-surface": "#0a1a25",
-        "border-default": "#0e2a35",
-        "text-primary": "#e0f8ff",
-        "text-secondary": "#4a8a9a",
-        "text-muted": "#1a4a5a",
+        "bg-base": "#1B1D21",
+        "bg-card": "#32363C",
+        "bg-surface": "#272A2F",
+        "border-default": "rgba(255,255,255,0.08)",
+        "text-primary": "#EDEFF3",
+        "text-secondary": "#D5D8DE",
+        "text-muted": "#8A8F98",
         "accent-cyan": "#00bfff",
         "accent-teal": "#00c896",
         "accent-blue": "#4d9fff",

@@ -14,27 +14,27 @@ interface GlowButtonProps {
 
 const variantStyles: Record<string, React.CSSProperties> = {
   primary: {
-    background: "rgba(0,51,68,0.8)",
-    border: "1px solid rgba(0,191,255,0.4)",
+    background: "rgba(0,191,255,0.1)",
+    border: "1px solid rgba(0,191,255,0.35)",
     color: "#00bfff",
   },
   ghost: {
     background: "transparent",
     border: "none",
-    color: "#4a8a9a",
+    color: "#8A8F98",
   },
   outline: {
     background: "transparent",
-    border: "1px solid #0e2a35",
-    color: "#4a8a9a",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "#8A8F98",
   },
 };
 
 const variantHoverClass: Record<string, string> = {
   primary:
-    "hover:border-[rgba(0,191,255,0.7)] hover:shadow-[0_0_18px_rgba(0,191,255,0.15)] hover:bg-[rgba(0,60,80,0.9)]",
-  ghost: "hover:text-[#e0f8ff]",
-  outline: "hover:border-[#0e3a4a] hover:text-[#e0f8ff]",
+    "hover:border-[rgba(0,191,255,0.6)] hover:shadow-[0_0_18px_rgba(0,191,255,0.12)] hover:bg-[rgba(0,191,255,0.15)]",
+  ghost: "hover:text-[#EDEFF3]",
+  outline: "hover:border-[rgba(255,255,255,0.15)] hover:text-[#EDEFF3]",
 };
 
 export default function GlowButton({

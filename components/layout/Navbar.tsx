@@ -120,8 +120,8 @@ export default function Navbar() {
         style={{
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          background: scrolled ? "rgba(8,12,15,0.9)" : "rgba(8,12,15,0.3)",
-          borderBottom: scrolled ? "1px solid rgba(14,42,53,0.8)" : "1px solid transparent",
+          background: scrolled ? "rgba(27,29,33,0.95)" : "rgba(27,29,33,0.3)",
+          borderBottom: scrolled ? "1px solid rgba(255,255,255,0.08)" : "1px solid transparent",
         }}
         id="navbar"
       >
@@ -166,10 +166,10 @@ export default function Navbar() {
                     onClick={() => setProfileOpen((v) => !v)}
                     className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-all duration-200"
                     style={{
-                      background: profileOpen ? "rgba(0,191,255,0.08)" : "transparent",
-                      border: "1px solid rgba(0,191,255,0.15)",
+                      background: profileOpen ? "rgba(255,255,255,0.06)" : "transparent",
+                      border: "1px solid rgba(255,255,255,0.1)",
                     }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(0,191,255,0.08)")}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)")}
                     onMouseLeave={(e) => !profileOpen && ((e.currentTarget as HTMLElement).style.background = "transparent")}
                     id="profile-menu-btn"
                     aria-haspopup="true"
@@ -179,8 +179,8 @@ export default function Navbar() {
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                       style={{
-                        background: "linear-gradient(135deg, rgba(0,191,255,0.3), rgba(0,128,128,0.4))",
-                        border: "1px solid rgba(0,191,255,0.4)",
+                        background: "linear-gradient(135deg, rgba(0,191,255,0.2), rgba(0,200,150,0.2))",
+                        border: "1px solid rgba(0,191,255,0.3)",
                         color: "var(--accent-cyan)",
                       }}
                     >
@@ -206,15 +206,15 @@ export default function Navbar() {
                         transition={{ duration: 0.15 }}
                         className="absolute right-0 top-[calc(100%+10px)] w-56 rounded-2xl overflow-hidden shadow-2xl z-50"
                         style={{
-                          background: "rgba(8,14,20,0.97)",
+                          background: "rgba(50,54,60,0.97)",
                           backdropFilter: "blur(20px)",
-                          border: "1px solid rgba(0,191,255,0.12)",
+                          border: "1px solid rgba(255,255,255,0.1)",
                         }}
                         id="profile-dropdown"
                         role="menu"
                       >
                         {/* User info header */}
-                        <div className="px-4 py-3 border-b border-[rgba(0,191,255,0.08)]">
+                        <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.08)]">
                           <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
                             {user.name ?? "User"}
                           </p>
@@ -235,7 +235,7 @@ export default function Navbar() {
                               className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
                               style={{ color: "var(--text-secondary)" }}
                               onMouseEnter={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = "rgba(0,191,255,0.07)";
+                                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
                                 (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
                               }}
                               onMouseLeave={(e) => {
@@ -251,7 +251,7 @@ export default function Navbar() {
                         </div>
 
                         {/* Logout */}
-                        <div className="border-t border-[rgba(0,191,255,0.08)] py-1.5">
+                        <div className="border-t border-[rgba(255,255,255,0.08)] py-1.5">
                           <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
@@ -272,8 +272,8 @@ export default function Navbar() {
               ) : (
                 /* ── Logged-out: Sign In + Get Started ── */
                 <>
-                  <GlowButton variant="ghost" href="#auth">Sign In</GlowButton>
-                  <GlowButton variant="primary" href="#auth" id="navbar-cta">Get Started →</GlowButton>
+                  <GlowButton variant="ghost" href="/auth">Sign In</GlowButton>
+                  <GlowButton variant="primary" href="/auth" id="navbar-cta">Get Started →</GlowButton>
                 </>
               )}
             </div>
@@ -302,9 +302,9 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="fixed top-16 left-0 right-0 z-40 md:hidden"
             style={{
-              background: "rgba(8,12,15,0.97)",
+              background: "rgba(27,29,33,0.97)",
               backdropFilter: "blur(16px)",
-              borderBottom: "1px solid var(--border)",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
             }}
             id="mobile-menu"
           >
@@ -320,7 +320,7 @@ export default function Navbar() {
                   {link.label}
                 </a>
               ))}
-              <div className="flex flex-col gap-3 pt-4 border-t border-[#0e2a35]">
+              <div className="flex flex-col gap-3 pt-4 border-t border-[rgba(255,255,255,0.08)]">
                 {user ? (
                   <>
                     <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
@@ -336,8 +336,8 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    <GlowButton variant="ghost" href="#auth">Sign In</GlowButton>
-                    <GlowButton variant="primary" href="#auth">Get Started →</GlowButton>
+                    <GlowButton variant="ghost" href="/auth">Sign In</GlowButton>
+                    <GlowButton variant="primary" href="/auth">Get Started →</GlowButton>
                   </>
                 )}
               </div>

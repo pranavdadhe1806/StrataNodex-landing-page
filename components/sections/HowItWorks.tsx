@@ -84,7 +84,7 @@ export default function HowItWorks() {
       ref={sectionRef}
       className="py-28 px-4 sm:px-6 lg:px-8 relative"
       style={{
-        background: "linear-gradient(180deg, #080c0f 0%, #0a1a25 100%)",
+        background: "linear-gradient(180deg, #1B1D21 0%, #272A2F 100%)",
       }}
       id="how-it-works"
       aria-labelledby="how-it-works-heading"
@@ -119,8 +119,8 @@ export default function HowItWorks() {
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center mb-6 flex-shrink-0"
                   style={{
-                    border: "1px solid rgba(0,191,255,0.3)",
-                    background: "rgba(0,191,255,0.04)",
+                    border: "1px solid rgba(0,191,255,0.25)",
+                    background: "rgba(0,191,255,0.06)",
                   }}
                 >
                   <span
@@ -152,7 +152,7 @@ export default function HowItWorks() {
                 {i < steps.length - 1 && (
                   <div
                     className="md:hidden w-px h-8 mt-6"
-                    style={{ background: "rgba(0,191,255,0.15)" }}
+                    style={{ background: "rgba(255,255,255,0.1)" }}
                     aria-hidden="true"
                   />
                 )}
@@ -179,7 +179,7 @@ export default function HowItWorks() {
               <path
                 ref={lineRef}
                 d="M 0,1 L 1000,1"
-                stroke="rgba(0,191,255,0.2)"
+                stroke="rgba(0,191,255,0.15)"
                 strokeWidth="1.5"
                 strokeDasharray="6 4"
                 strokeDashoffset="600"

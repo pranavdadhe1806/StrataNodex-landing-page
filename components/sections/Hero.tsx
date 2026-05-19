@@ -78,7 +78,7 @@ export default function Hero() {
             0.7 * Math.abs(Math.sin(tick * 0.005 - dist * 0.003));
           ctx.beginPath();
           ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(0,191,255,${0.06 + pulse * 0.09})`;
+          ctx.fillStyle = `rgba(0,191,255,${0.04 + pulse * 0.06})`;
           ctx.fill();
         }
       }
@@ -122,7 +122,7 @@ export default function Hero() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,191,255,0.04) 0%, transparent 70%)",
+            "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,191,255,0.03) 0%, transparent 70%)",
         }}
         aria-hidden="true"
       />
@@ -183,9 +183,9 @@ export default function Hero() {
             lineHeight: 1.7,
           }}
         >
-          Tree-based task management. CLI-first. Infinite nesting.
+          Open-source task management across CLI, web, and mobile.
           <br />
-          Built for developers who think in layers.
+          Infinite nesting. One ecosystem. Built for developers.
         </motion.p>
 
         {/* CTA buttons */}
@@ -200,19 +200,19 @@ export default function Hero() {
             onClick={handleCopy}
             className="flex items-center gap-3 px-5 py-3 rounded-lg transition-all duration-300"
             style={{
-              background: "rgba(0,191,255,0.04)",
-              border: "1px solid rgba(0,191,255,0.2)",
+              background: "rgba(0,191,255,0.06)",
+              border: "1px solid rgba(0,191,255,0.25)",
               fontFamily: "var(--font-geist-mono)",
               fontSize: "14px",
               color: "var(--accent-cyan)",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
-                "rgba(0,191,255,0.4)";
+                "rgba(0,191,255,0.5)";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
-                "rgba(0,191,255,0.2)";
+                "rgba(0,191,255,0.25)";
             }}
             id="hero-copy-btn"
             aria-label="Copy install command to clipboard"

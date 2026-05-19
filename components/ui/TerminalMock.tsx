@@ -27,10 +27,10 @@ interface TerminalMockProps {
 
 const colorMap: Record<TerminalLineColor, string> = {
   cyan: "#00bfff",
-  green: "#00ff99",
+  green: "#00c896",
   red: "#ff4466",
-  dim: "#4a8a9a",
-  white: "#e0f8ff",
+  dim: "#8A8F98",
+  white: "#EDEFF3",
   teal: "#00c896",
 };
 
@@ -93,8 +93,8 @@ export default function TerminalMock({
     <div
       className={`rounded-xl overflow-hidden ${className}`}
       style={{
-        background: "#0a0f13",
-        border: "1px solid rgba(0,191,255,0.12)",
+        background: "#272A2F",
+        border: "1px solid rgba(255,255,255,0.08)",
         fontFamily: "var(--font-geist-mono)",
       }}
     >
@@ -102,8 +102,8 @@ export default function TerminalMock({
       <div
         className="flex items-center gap-2 px-4 py-3"
         style={{
-          background: "#0d1318",
-          borderBottom: "1px solid #0e2a35",
+          background: "#32363C",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
         <span
@@ -120,7 +120,7 @@ export default function TerminalMock({
         />
         <span
           className="ml-3 text-xs"
-          style={{ color: "var(--text-muted)", letterSpacing: "0.05em" }}
+          style={{ color: "#8A8F98", letterSpacing: "0.05em" }}
         >
           {title}
         </span>
@@ -135,7 +135,7 @@ export default function TerminalMock({
             ) : null}
             <span
               style={{
-                color: line.color ? colorMap[line.color] : "#e0f8ff",
+                color: line.color ? colorMap[line.color] : "#EDEFF3",
                 whiteSpace: "pre",
               }}
             >
