@@ -61,7 +61,7 @@ export default function MobileSection() {
       ref={sectionRef}
       className="py-28 px-4 sm:px-6 lg:px-8"
       style={{
-        background: "linear-gradient(180deg, #080c0f 0%, #0a1a25 100%)",
+        background: "linear-gradient(180deg, #1B1D21 0%, #272A2F 100%)",
       }}
       id="mobile"
       aria-labelledby="mobile-heading"
@@ -86,8 +86,8 @@ export default function MobileSection() {
               maxWidth: "520px",
             }}
           >
-            React Native. Same account. Add tasks on the go, check your daily
-            view, and keep the streak alive.
+            Your full task tree, streaks, and daily view — everywhere you go.
+            Same account, every surface.
           </p>
 
           {/* Coming soon badge */}
@@ -95,9 +95,9 @@ export default function MobileSection() {
             <span
               className="text-sm font-medium"
               style={{
-                border: "1px solid rgba(0,200,150,0.3)",
+                border: "1px solid rgba(0,200,150,0.25)",
                 color: "#00c896",
-                background: "rgba(0,200,150,0.06)",
+                background: "rgba(0,200,150,0.08)",
                 padding: "6px 16px",
                 borderRadius: "999px",
                 fontFamily: "var(--font-geist-mono)",
@@ -120,11 +120,11 @@ export default function MobileSection() {
             style={{
               width: "260px",
               height: "520px",
-              background: "#0d1318",
+              background: "#272A2F",
               borderRadius: "40px",
-              border: "2px solid rgba(0,191,255,0.15)",
+              border: "2px solid rgba(255,255,255,0.1)",
               boxShadow:
-                "0 0 60px rgba(0,191,255,0.06), inset 0 0 0 1px rgba(0,191,255,0.05)",
+                "0 0 60px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.04)",
               padding: "12px",
             }}
           >
@@ -134,7 +134,7 @@ export default function MobileSection() {
               style={{
                 width: "80px",
                 height: "24px",
-                background: "#080c0f",
+                background: "#1B1D21",
                 borderRadius: "12px",
                 zIndex: 10,
               }}
@@ -144,7 +144,7 @@ export default function MobileSection() {
             {/* Screen content */}
             <div
               className="h-full rounded-[32px] overflow-hidden flex flex-col"
-              style={{ background: "#080c0f", paddingTop: "48px" }}
+              style={{ background: "#1B1D21", paddingTop: "48px" }}
             >
               {/* Status bar */}
               <div
@@ -160,7 +160,7 @@ export default function MobileSection() {
               {/* App header */}
               <div
                 className="px-5 py-4"
-                style={{ borderBottom: "1px solid #0e2a35" }}
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
               >
                 <h3
                   className="font-bold"
@@ -187,8 +187,8 @@ export default function MobileSection() {
                     key={item.label}
                     className="flex items-center justify-between px-3 py-3 rounded-xl"
                     style={{
-                      background: "rgba(0,191,255,0.03)",
-                      border: "1px solid rgba(0,191,255,0.08)",
+                      background: "#32363C",
+                      border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function MobileSection() {
                     <span
                       className="text-xs px-2 py-0.5 rounded-full"
                       style={{
-                        background: "rgba(0,191,255,0.08)",
+                        background: "rgba(0,191,255,0.1)",
                         color: "var(--accent-cyan)",
                         fontFamily: "var(--font-geist-mono)",
                       }}
@@ -217,8 +217,8 @@ export default function MobileSection() {
                 <div
                   className="px-3 py-3 rounded-xl mt-2"
                   style={{
-                    background: "rgba(0,200,150,0.04)",
-                    border: "1px solid rgba(0,200,150,0.15)",
+                    background: "rgba(0,200,150,0.06)",
+                    border: "1px solid rgba(0,200,150,0.12)",
                   }}
                 >
                   <p
@@ -245,7 +245,7 @@ export default function MobileSection() {
               {/* Bottom nav */}
               <div
                 className="flex items-center justify-around py-4 px-4"
-                style={{ borderTop: "1px solid #0e2a35" }}
+                style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
               >
                 {["⊞", "◫", "⊙"].map((icon, i) => (
                   <button
@@ -270,7 +270,7 @@ export default function MobileSection() {
               style={{
                 width: "100px",
                 height: "4px",
-                background: "rgba(0,191,255,0.2)",
+                background: "rgba(255,255,255,0.15)",
                 borderRadius: "2px",
               }}
               aria-hidden="true"
