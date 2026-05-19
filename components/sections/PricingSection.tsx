@@ -87,8 +87,8 @@ export default function PricingSection() {
             <div
               className="flex items-center p-1 rounded-lg"
               style={{
-                background: "rgba(0,191,255,0.04)",
-                border: "1px solid rgba(0,191,255,0.12)",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
               <button
@@ -97,7 +97,7 @@ export default function PricingSection() {
                 style={{
                   background:
                     interval === "MONTHLY"
-                      ? "rgba(0,191,255,0.1)"
+                      ? "rgba(0,191,255,0.12)"
                       : "transparent",
                   color:
                     interval === "MONTHLY"
@@ -113,7 +113,7 @@ export default function PricingSection() {
                 style={{
                   background:
                     interval === "YEARLY"
-                      ? "rgba(0,191,255,0.1)"
+                      ? "rgba(0,191,255,0.12)"
                       : "transparent",
                   color:
                     interval === "YEARLY"
@@ -156,8 +156,8 @@ export default function PricingSection() {
                 style={
                   plan.popular
                     ? {
-                        border: "1px solid rgba(0,191,255,0.4)",
-                        background: "rgba(0,191,255,0.03)",
+                        border: "1px solid rgba(0,191,255,0.3)",
+                        background: "rgba(0,191,255,0.04)",
                       }
                     : {}
                 }
@@ -208,7 +208,7 @@ export default function PricingSection() {
 
                 <GlowButton
                   variant={plan.popular ? "primary" : "ghost"}
-                  href="#auth"
+                  href="/auth"
                   className="w-full justify-center"
                 >
                   {plan.cta}

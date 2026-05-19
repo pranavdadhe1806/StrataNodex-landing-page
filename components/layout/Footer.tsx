@@ -40,7 +40,7 @@ export default function Footer() {
   return (
     <footer
       className="relative"
-      style={{ borderTop: "1px solid #0e2a35" }}
+      style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
       id="footer"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -60,7 +60,7 @@ export default function Footer() {
               className="text-sm mb-6"
               style={{ color: "var(--text-secondary)" }}
             >
-              Tree-based productivity. CLI-first.
+              Open-source productivity. One ecosystem.
             </p>
             <p
               className="text-xs"
@@ -86,8 +86,8 @@ export default function Footer() {
                   placeholder="you@example.com"
                   className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
                   style={{
-                    background: "rgba(0,191,255,0.04)",
-                    border: "1px solid rgba(0,191,255,0.12)",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
                     color: "var(--text-primary)",
                   }}
                   id="footer-email"
@@ -96,8 +96,8 @@ export default function Footer() {
                   type="submit"
                   className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                   style={{
-                    background: "rgba(0,51,68,0.8)",
-                    border: "1px solid rgba(0,191,255,0.4)",
+                    background: "rgba(0,191,255,0.1)",
+                    border: "1px solid rgba(0,191,255,0.3)",
                     color: "var(--accent-cyan)",
                   }}
                 >
@@ -148,7 +148,7 @@ export default function Footer() {
         {/* Bottom row */}
         <div
           className="mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-          style={{ borderTop: "1px solid #0e2a35" }}
+          style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
         >
           <p
             className="text-xs text-center sm:text-left"
