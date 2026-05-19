@@ -12,26 +12,17 @@ const cliTerminalLines: TerminalLine[] = [
   { text: "  StrataNodex        v0.1.0  ● connected", color: "dim", delay: 200 },
   { text: "  ──────────────────────────────────────", color: "dim", delay: 400 },
   { text: "", delay: 500 },
-  { text: "  > /list -d 2", color: "cyan", delay: 900 },
-  { text: "", delay: 1200 },
-  { text: "  📁 Work", color: "white", delay: 1400 },
-  { text: "    📋 Sprint 4", color: "dim", delay: 1600 },
-  {
-    text: "      1  Ship v1           [TODO] [HIGH]",
-    color: "white",
-    delay: 1800,
-  },
-  {
-    text: "        └─ 1.1  Write tests     [TODO]",
-    color: "dim",
-    delay: 2000,
-  },
-  {
-    text: "        └─ 1.2  Deploy backend  [IN PROGRESS]",
-    color: "teal",
-    delay: 2200,
-  },
-  { text: "      2  Fix auth bug       [DONE]", color: "green", delay: 2400 },
+  { text: "  Work / Sprint 4", color: "dim", delay: 800 },
+  { text: "", delay: 1000 },
+  { text: "  1  Ship v1              [TODO] [HIGH]", color: "white", delay: 1300 },
+  { text: "    └─ 1.1  Write tests        [TODO]", color: "dim", delay: 1500 },
+  { text: "    └─ 1.2  Deploy backend     [IN PROGRESS]", color: "teal", delay: 1700 },
+  { text: "  2  Fix auth bug              [DONE]", color: "green", delay: 1900 },
+  { text: "  3  Update landing page       [TODO]", color: "white", delay: 2100 },
+  { text: "", delay: 2300 },
+  { text: "  ──────────────────────────────────────", color: "dim", delay: 2400 },
+  { text: "  > /add node: Setup CI pipeline", color: "cyan", delay: 2800 },
+  { text: "  ✓ Node added at position 4", color: "green", delay: 3200 },
 ];
 
 export default function CLISection() {
@@ -82,7 +73,7 @@ export default function CLISection() {
       ref={sectionRef}
       className="py-28 px-4 sm:px-6 lg:px-8"
       style={{
-        background: "linear-gradient(180deg, #0a1a25 0%, #080c0f 100%)",
+        background: "linear-gradient(180deg, #272A2F 0%, #1B1D21 100%)",
       }}
       id="cli"
       aria-labelledby="cli-heading"
@@ -115,8 +106,8 @@ export default function CLISection() {
             <div
               className="inline-flex items-center gap-3 px-5 py-3 rounded-lg mb-8"
               style={{
-                background: "rgba(0,191,255,0.04)",
-                border: "1px solid rgba(0,191,255,0.2)",
+                background: "rgba(0,191,255,0.06)",
+                border: "1px solid rgba(0,191,255,0.25)",
                 fontFamily: "var(--font-geist-mono)",
                 fontSize: "14px",
               }}
