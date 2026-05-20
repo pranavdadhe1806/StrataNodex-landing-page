@@ -225,29 +225,45 @@ export default function Navbar() {
 
                         {/* Menu items */}
                         <div className="py-1.5">
-                          {profileMenuItems.map(({ label, icon: Icon, href }) => (
-                            <a
-                              key={label}
-                              href={href}
-                              target={label === "Dashboard" ? "_blank" : undefined}
-                              rel={label === "Dashboard" ? "noopener noreferrer" : undefined}
-                              onClick={() => setProfileOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
-                              style={{ color: "var(--text-secondary)" }}
-                              onMouseEnter={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
-                                (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
-                              }}
-                              onMouseLeave={(e) => {
-                                (e.currentTarget as HTMLElement).style.background = "transparent";
-                                (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
-                              }}
-                              role="menuitem"
-                            >
-                              <Icon size={15} className="opacity-60" />
-                              {label}
-                            </a>
-                          ))}
+                        {profileMenuItems.map(({ label, icon: Icon, href }) => {
+                              // Dashboard needs cross-origin token handoff
+                              const isDashboard = label === "Dashboard";
+                              const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                                if (isDashboard) {
+                                  e.preventDefault();
+                                  const token = localStorage.getItem("sn_token");
+                                  const sep = href.includes("?") ? "&" : "?";
+                                  const url = token
+                                    ? `${href}${sep}token=${encodeURIComponent(token)}`
+                                    : href;
+                                  window.open(url, "_blank", "noopener,noreferrer");
+                                }
+                                setProfileOpen(false);
+                              };
+                              return (
+                              <a
+                                key={label}
+                                href={href}
+                                target={isDashboard ? "_blank" : undefined}
+                                rel={isDashboard ? "noopener noreferrer" : undefined}
+                                onClick={handleClick}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150"
+                                style={{ color: "var(--text-secondary)" }}
+                                onMouseEnter={(e) => {
+                                  (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                                  (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  (e.currentTarget as HTMLElement).style.background = "transparent";
+                                  (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                                }}
+                                role="menuitem"
+                              >
+                                <Icon size={15} className="opacity-60" />
+                                {label}
+                              </a>
+                              );
+                            })}
                         </div>
 
                         {/* Logout */}

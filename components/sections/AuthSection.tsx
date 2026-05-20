@@ -137,21 +137,40 @@ export default function AuthSection() {
     setTimeout(() => setToast(""), 4000);
   };
 
-  // ── CLI session completion helper — fails silently so web login is unaffected ──
+  // ── CLI session completion helper — retries up to 3 times ──
   const completeCliSession = async (code: string, token: string) => {
-    try {
-      await fetch(`${API_URL}/api/auth/cli-session/${code}/complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-cli-session-secret': process.env.NEXT_PUBLIC_CLI_SESSION_SECRET ?? '',
-        },
-        body: JSON.stringify({ token }),
-      });
-      setCliSessionCompleted(true);
-    } catch (err) {
-      console.error('CLI session complete failed:', err);
+    const MAX_RETRIES = 3;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(`${API_URL}/api/auth/cli-session/${code}/complete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-cli-session-secret': process.env.NEXT_PUBLIC_CLI_SESSION_SECRET ?? '',
+          },
+          body: JSON.stringify({ token }),
+        });
+        if (res.ok) {
+          setCliSessionCompleted(true);
+          return; // success — done
+        }
+        // Non-OK response (409 = already completed is fine, treat as success)
+        if (res.status === 409) {
+          setCliSessionCompleted(true);
+          return;
+        }
+        const errData = await res.json().catch(() => ({}));
+        console.error(`CLI session complete attempt ${attempt}/${MAX_RETRIES} failed:`, res.status, errData);
+      } catch (err) {
+        console.error(`CLI session complete attempt ${attempt}/${MAX_RETRIES} network error:`, err);
+      }
+      // Wait before retrying (500ms, 1s, 2s)
+      if (attempt < MAX_RETRIES) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+      }
     }
+    // All retries exhausted — surface the error
+    showToast('Could not complete CLI login. Please sign in manually below.');
   };
 
   const triggerShake = () => {
