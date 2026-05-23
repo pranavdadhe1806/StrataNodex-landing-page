@@ -14,9 +14,9 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
 ];
 
-// Web app URL: use env var if set, fall back to local dev port
+// Web app URL: use env var if set, fall back to custom domain in prod
 const WEB_APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:5173";
+  process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.stratanodex.online';
 
 const profileMenuItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: `${WEB_APP_URL}/dashboard` },
