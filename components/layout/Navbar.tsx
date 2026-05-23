@@ -11,7 +11,6 @@ const navLinks = [
   { label: "CLI", href: "#cli" },
   { label: "Web App", href: "#webapp" },
   { label: "Mobile", href: "#mobile" },
-  { label: "Pricing", href: "#pricing" },
 ];
 
 // Web app URL: use env var if set, fall back to custom domain in prod

@@ -6,8 +6,6 @@ import Features from "@/components/sections/Features";
 import CLISection from "@/components/sections/CLISection";
 import WebAppSection from "@/components/sections/WebAppSection";
 import MobileSection from "@/components/sections/MobileSection";
-import PricingSection from "@/components/sections/PricingSection";
-import AuthSection from "@/components/sections/AuthSection";
 
 export default function Home() {
   return (
@@ -20,8 +18,6 @@ export default function Home() {
         <CLISection />
         <WebAppSection />
         <MobileSection />
-        <PricingSection />
-        <AuthSection />
       </main>
       <Footer />
     </>
