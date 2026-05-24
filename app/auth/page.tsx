@@ -89,6 +89,17 @@ export default function AuthPage() {
   const sessionCode = useRef<string | null>(null);
   const redirectAfterLogin = useRef<string | null>(null);
 
+  // ── 2FA step ──
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [twoFactorUserId, setTwoFactorUserId] = useState("");
+
+  // ── Forgot / reset password ──
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [showResetPwVisible, setShowResetPwVisible] = useState(false);
+
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
 
   // ── Extract ?session=CODE and ?redirect=URL from URL ──
@@ -178,6 +189,13 @@ export default function AuthPage() {
       if (res.ok) {
         if (isLogin) {
           const data = await res.json();
+          // ── 2FA required ──
+          if (data.requiresTwoFactor) {
+            setTwoFactorUserId(data.userId);
+            setShowTwoFactor(true);
+            setLoading(false);
+            return;
+          }
           if (data.token) localStorage.setItem("sn_token", data.token);
           if (data.user) localStorage.setItem("sn_user", JSON.stringify(data.user));
           window.dispatchEvent(new Event("sn_auth_change"));
@@ -266,6 +284,104 @@ export default function AuthPage() {
     if (e.key === "Backspace" && otp[index] === "" && index > 0) otpRefs.current[index - 1]?.focus();
   };
 
+  // ── 2FA verify ──
+  const handleTwoFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = otp.join("");
+    if (code.length !== 6) { setError("Please enter the full 6-digit code."); triggerShake(); return; }
+    setError(""); setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/2fa/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: twoFactorUserId, code }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem("sn_token", data.token);
+        if (data.user) localStorage.setItem("sn_user", JSON.stringify(data.user));
+        window.dispatchEvent(new Event("sn_auth_change"));
+        if (sessionCode.current) {
+          await completeCliSession(sessionCode.current, data.token);
+        } else if (redirectAfterLogin.current) {
+          const sep = redirectAfterLogin.current.includes("?") ? "&" : "?";
+          window.location.href = `${redirectAfterLogin.current}${sep}token=${encodeURIComponent(data.token)}`;
+        } else {
+          showToast(`Welcome back, ${data.user?.name ?? data.user?.email ?? "there"}!`);
+          setTimeout(() => { window.location.href = "/"; }, 1500);
+        }
+      } else {
+        const data = await res.json();
+        setError(data.message ?? data.error ?? "Invalid code. Please try again.");
+        triggerShake();
+      }
+    } catch {
+      setError("Unable to connect. Please check your network.");
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Forgot password — send OTP ──
+  const handleForgotPasswordSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim() || !/^\S+@\S+\.\S+$/.test(forgotEmail)) { setError("Please enter a valid email."); triggerShake(); return; }
+    setError(""); setSuccess(""); setLoading(true);
+    try {
+      await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      setOtp(["", "", "", "", "", ""]);
+      setShowForgotPassword(false);
+      setShowResetPassword(true);
+      setSuccess("If this email exists, a reset code has been sent.");
+    } catch {
+      setError("Unable to connect. Please check your network.");
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Reset password — verify OTP + set new password ──
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = otp.join("");
+    if (code.length !== 6) { setError("Please enter the full 6-digit code."); triggerShake(); return; }
+    if (!resetNewPassword || resetNewPassword.length < 6) { setError("Password must be at least 6 characters."); triggerShake(); return; }
+    setError(""); setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail, code, newPassword: resetNewPassword }),
+      });
+      if (res.ok) {
+        setSuccess("Password reset successfully! You can now sign in.");
+        setTimeout(() => {
+          setShowResetPassword(false);
+          setIsLogin(true);
+          setOtp(["", "", "", "", "", ""]);
+          setResetNewPassword("");
+          setForgotEmail("");
+          setSuccess("");
+        }, 2000);
+      } else {
+        const data = await res.json();
+        setError(data.message ?? data.error ?? "Failed to reset password.");
+        triggerShake();
+      }
+    } catch {
+      setError("Unable to connect. Please check your network.");
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ── Input style helper ──
   const inputStyle = {
     background: "rgba(255,255,255,0.04)",
@@ -331,11 +447,17 @@ export default function AuthPage() {
               className="text-xl font-semibold mb-8"
               style={{ color: "#EDEFF3" }}
             >
-              {showOtp
-                ? "Verify your email"
-                : isLogin
-                  ? "Sign in to StrataNodex"
-                  : "Create your account"}
+              {showTwoFactor
+                ? "Two-factor authentication"
+                : showForgotPassword
+                  ? "Forgot password"
+                  : showResetPassword
+                    ? "Reset your password"
+                    : showOtp
+                      ? "Verify your email"
+                      : isLogin
+                        ? "Sign in to StrataNodex"
+                        : "Create your account"}
             </h1>
 
             {/* CLI Session Banner */}
@@ -373,6 +495,123 @@ export default function AuthPage() {
                   You can close this tab.
                 </p>
               </motion.div>
+            ) : showTwoFactor ? (
+              /* ── 2FA OTP Form ── */
+              <form onSubmit={handleTwoFactorSubmit} noValidate>
+                <p className="text-sm mb-6" style={{ color: "#D5D8DE" }}>
+                  A 6-digit code was sent to your registered email address.
+                </p>
+                <div className="flex gap-2 justify-between mb-8">
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
+                      style={inputStyle}
+                      onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
+                      onBlur={(e) => (e.target.style.borderColor = inputBlurBorder)}
+                      maxLength={1}
+                    />
+                  ))}
+                </div>
+                {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm mb-4" style={{ color: "#ff4466" }} role="alert">{error}</motion.p>}
+                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-300" style={{ background: "rgba(0,191,255,0.1)", border: "1px solid rgba(0,191,255,0.35)", color: "#00bfff", opacity: loading ? 0.7 : 1 }}>
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  Verify Code
+                </button>
+                <p className="text-center text-sm mt-6" style={{ color: "#8A8F98" }}>
+                  <button type="button" onClick={() => { setShowTwoFactor(false); setOtp(["", "", "", "", "", ""]); setError(""); }} className="transition-colors duration-200 font-medium hover:text-[#EDEFF3]" style={{ color: "#D5D8DE" }}>
+                    &larr; Back to sign in
+                  </button>
+                </p>
+              </form>
+            ) : showForgotPassword ? (
+              /* ── Forgot Password Form ── */
+              <form onSubmit={handleForgotPasswordSend} noValidate>
+                <p className="text-sm mb-6" style={{ color: "#D5D8DE" }}>
+                  Enter your account email. We&apos;ll send a reset code.
+                </p>
+                <div className="mb-6">
+                  <label className="block text-xs mb-2" style={{ color: "#D5D8DE", letterSpacing: "0.04em" }}>Email</label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all duration-200"
+                    style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
+                    onBlur={(e) => (e.target.style.borderColor = inputBlurBorder)}
+                    autoFocus
+                  />
+                </div>
+                {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm mb-4" style={{ color: "#ff4466" }} role="alert">{error}</motion.p>}
+                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-300" style={{ background: "rgba(0,191,255,0.1)", border: "1px solid rgba(0,191,255,0.35)", color: "#00bfff", opacity: loading ? 0.7 : 1 }}>
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  Send Reset Code
+                </button>
+                <p className="text-center text-sm mt-6" style={{ color: "#8A8F98" }}>
+                  <button type="button" onClick={() => { setShowForgotPassword(false); setError(""); }} className="transition-colors duration-200 font-medium hover:text-[#EDEFF3]" style={{ color: "#D5D8DE" }}>
+                    &larr; Back to sign in
+                  </button>
+                </p>
+              </form>
+            ) : showResetPassword ? (
+              /* ── Reset Password Form ── */
+              <form onSubmit={handleResetPasswordSubmit} noValidate>
+                <p className="text-sm mb-2" style={{ color: "#D5D8DE" }}>
+                  Enter the 6-digit code sent to <strong style={{ color: "#EDEFF3" }}>{forgotEmail}</strong>.
+                </p>
+                {success && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm mb-4" style={{ color: "#00c896" }} role="status">{success}</motion.p>}
+                <div className="flex gap-2 justify-between mb-6 mt-4">
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => { otpRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
+                      style={inputStyle}
+                      onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
+                      onBlur={(e) => (e.target.style.borderColor = inputBlurBorder)}
+                      maxLength={1}
+                    />
+                  ))}
+                </div>
+                <div className="mb-6 relative">
+                  <label className="block text-xs mb-2" style={{ color: "#D5D8DE", letterSpacing: "0.04em" }}>New Password</label>
+                  <input
+                    type={showResetPwVisible ? "text" : "password"}
+                    value={resetNewPassword}
+                    onChange={(e) => setResetNewPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    className="w-full px-4 py-3 pr-12 rounded-lg text-sm outline-none transition-all duration-200"
+                    style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
+                    onBlur={(e) => (e.target.style.borderColor = inputBlurBorder)}
+                  />
+                  <button type="button" onClick={() => setShowResetPwVisible(!showResetPwVisible)} className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-200 transition-colors" tabIndex={-1}>
+                    {showResetPwVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm mb-4" style={{ color: "#ff4466" }} role="alert">{error}</motion.p>}
+                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-300" style={{ background: "rgba(0,191,255,0.1)", border: "1px solid rgba(0,191,255,0.35)", color: "#00bfff", opacity: loading ? 0.7 : 1 }}>
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  Reset Password
+                </button>
+                <p className="text-center text-sm mt-6" style={{ color: "#8A8F98" }}>
+                  <button type="button" onClick={() => { setShowResetPassword(false); setShowForgotPassword(true); setOtp(["", "", "", "", "", ""]); setError(""); }} className="transition-colors duration-200 font-medium hover:text-[#EDEFF3]" style={{ color: "#D5D8DE" }}>
+                    &larr; Back
+                  </button>
+                </p>
+              </form>
             ) : showOtp ? (
               /* ── OTP Form ── */
               <form onSubmit={handleOtpSubmit} noValidate>
@@ -650,8 +889,19 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* Spacer if login */}
-                {isLogin && <div className="mb-4" />}
+                {/* Forgot password link */}
+                {isLogin && (
+                  <div className="flex justify-end mb-4">
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotPassword(true); setError(""); setSuccess(""); }}
+                      className="text-xs transition-colors duration-200 hover:text-[#EDEFF3]"
+                      style={{ color: "#8A8F98" }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
 
                 {/* Error */}
                 {error && (
