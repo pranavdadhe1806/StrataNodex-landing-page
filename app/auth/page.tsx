@@ -284,6 +284,17 @@ export default function AuthPage() {
     if (e.key === "Backspace" && otp[index] === "" && index > 0) otpRefs.current[index - 1]?.focus();
   };
 
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6).split("");
+    if (!digits.length) return;
+    const newOtp = [...otp];
+    digits.forEach((d, i) => { newOtp[i] = d; });
+    setOtp(newOtp);
+    const nextFocus = Math.min(digits.length, 5);
+    otpRefs.current[nextFocus]?.focus();
+  };
+
   // ── 2FA verify ──
   const handleTwoFactorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -511,6 +522,7 @@ export default function AuthPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={i === 0 ? handleOtpPaste : undefined}
                       className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
                       style={inputStyle}
                       onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
@@ -577,6 +589,7 @@ export default function AuthPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={i === 0 ? handleOtpPaste : undefined}
                       className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
                       style={inputStyle}
                       onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
@@ -628,6 +641,7 @@ export default function AuthPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value.replace(/\D/g, ""))}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={i === 0 ? handleOtpPaste : undefined}
                       className="w-12 h-14 text-center text-lg rounded-lg outline-none transition-all duration-200 font-medium"
                       style={inputStyle}
                       onFocus={(e) => (e.target.style.borderColor = inputFocusBorder)}
