@@ -32,7 +32,6 @@ const words = ["Productivity", "that", "lives", "where", "you", "work"];
 export default function Hero() {
   const [copied, setCopied] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Scroll tracking for chevron fade
   useEffect(() => {
@@ -41,58 +40,7 @@ export default function Hero() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Dot grid canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    let animFrame: number;
-    let tick = 0;
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const spacing = 40;
-      const cols = Math.ceil(canvas.width / spacing);
-      const rows = Math.ceil(canvas.height / spacing);
-
-      for (let r = 0; r <= rows; r++) {
-        for (let c = 0; c <= cols; c++) {
-          const x = c * spacing;
-          const y = r * spacing;
-          const dist = Math.sqrt(
-            Math.pow(x - canvas.width / 2, 2) +
-              Math.pow(y - canvas.height / 2, 2)
-          );
-          const pulse =
-            0.3 +
-            0.7 * Math.abs(Math.sin(tick * 0.005 - dist * 0.003));
-          ctx.beginPath();
-          ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(0,191,255,${0.04 + pulse * 0.06})`;
-          ctx.fill();
-        }
-      }
-      tick++;
-      animFrame = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animFrame);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
 
   const handleCopy = async () => {
     try {
@@ -110,10 +58,16 @@ export default function Hero() {
       style={{ background: "var(--bg-base)" }}
       id="hero"
     >
-      {/* Dot grid background */}
-      <canvas
-        ref={canvasRef}
+      {/* Grid background */}
+      <div
         className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(0, 191, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 191, 255, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
         aria-hidden="true"
       />
 
