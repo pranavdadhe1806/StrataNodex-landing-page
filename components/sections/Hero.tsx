@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Check, Copy } from "lucide-react";
 import TerminalMock, { TerminalLine } from "@/components/ui/TerminalMock";
