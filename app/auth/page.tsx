@@ -121,8 +121,28 @@ export default function AuthPage() {
       redirectAfterLogin.current = redirectUrl;
       const existingToken = localStorage.getItem("sn_token");
       if (existingToken) {
-        const sep = redirectUrl.includes("?") ? "&" : "?";
-        window.location.href = `${redirectUrl}${sep}token=${encodeURIComponent(existingToken)}`;
+        // Validate the token before forwarding — it might be expired
+        fetch(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${existingToken}` },
+        })
+          .then((res) => {
+            if (res.ok) {
+              // Token is valid — hand it to the web app
+              const sep = redirectUrl.includes("?") ? "&" : "?";
+              window.location.href = `${redirectUrl}${sep}token=${encodeURIComponent(existingToken)}`;
+            } else {
+              // Token expired/invalid — clear it so user can log in fresh
+              localStorage.removeItem("sn_token");
+              localStorage.removeItem("sn_user");
+              window.dispatchEvent(new Event("sn_auth_change"));
+            }
+          })
+          .catch(() => {
+            // Network error — clear stale token, show login
+            localStorage.removeItem("sn_token");
+            localStorage.removeItem("sn_user");
+            window.dispatchEvent(new Event("sn_auth_change"));
+          });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -115,13 +115,35 @@ export default function AuthSection() {
     // Store redirect URL so handleSubmit can use it after login
     if (redirectUrl) {
       redirectAfterLogin.current = redirectUrl;
-      // If already logged in, hand the token to the web app right away.
+      // If already logged in, validate token first then hand it to the web app.
       // We MUST append ?token= because localStorage is per-origin:
       // the web app (localhost:5173) can't read localhost:3001's sn_token.
       const existingToken = localStorage.getItem('sn_token');
       if (existingToken) {
-        const sep = redirectUrl.includes('?') ? '&' : '?';
-        window.location.href = `${redirectUrl}${sep}token=${encodeURIComponent(existingToken)}`;
+        // Validate token before forwarding — it might be expired
+        fetch(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${existingToken}` },
+        })
+          .then((res) => {
+            if (res.ok) {
+              const sep = redirectUrl.includes('?') ? '&' : '?';
+              window.location.href = `${redirectUrl}${sep}token=${encodeURIComponent(existingToken)}`;
+            } else {
+              // Token expired/invalid — clear it so user can log in fresh
+              localStorage.removeItem('sn_token');
+              localStorage.removeItem('sn_user');
+              window.dispatchEvent(new Event('sn_auth_change'));
+              // Scroll to auth form
+              setTimeout(() => {
+                document.getElementById('auth')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 300);
+            }
+          })
+          .catch(() => {
+            localStorage.removeItem('sn_token');
+            localStorage.removeItem('sn_user');
+            window.dispatchEvent(new Event('sn_auth_change'));
+          });
         return;
       }
       // Not logged in — scroll to the auth form so they can sign in
